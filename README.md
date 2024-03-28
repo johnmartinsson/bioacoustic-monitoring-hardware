@@ -15,10 +15,21 @@ I do not yet know which of these may have support for wifi.
 
 ## Network of bioacoustic monitoring hardware
 
-The AudioMoth is farily cheap, samples at frequencies up to 384kHz, and is fully open source and configurable. Let's start exploring this option.
+The AudioMoth is farily cheap, samples at high frequencies, and is fully open source and configurable. Let's start exploring this option.
 
-My current idea is that a good way forward would be to buy a couple of AudioMoths, turn them into USB Microphones, and connect them to a USB hub which is then connected to a Raspberry Pi. The Raspberry Pi will handle the streams of data and upload them to the central server.
+My current idea is that we
+
+- buy a couple of AudioMoth USB Microphones, and
+- connect them to a to a Raspberry Pi or similar.
+
+The Raspberry Pi will collect the streams of data and upload them to the central server.
+
+E.g., buy through this grouper campaing:
+
+- https://www.openacousticdevices.info/purchase
 
 ### AudioMoth USB Microphone
+
+Any AudioMoth can be turned into a USB Microphone:
 - https://www.openacousticdevices.info/usb-microphone
 - https://github.com/OpenAcousticDevices/Application-Notes/blob/master/Using_the_AudioMoth_Live_App_with_the_AudioMoth_USB_Microphone/Using_the_AudioMoth_Live_App_with_the_AudioMoth_USB_Microphone.pdf
