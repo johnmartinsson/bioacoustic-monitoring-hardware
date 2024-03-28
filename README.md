@@ -4,7 +4,7 @@ Great reference: [Choosing Equipment for Animal Bioacoustic Research](https://li
 
 Quick research on available bioacoustic monitoring hardware for monitoring Guillemots in the Baltic Sea. The site has power and network readily available, and just needs microphones installed which collect audio. The microphone streams should in the best case be available over wifi.
 
-- AudioMoth, ~1kSEK, https://www.openacousticdevices.info/audiomoth
+- AudioMoth, ~1kSEK (down to 0.6kSEK if Grouper Deal), https://www.openacousticdevices.info/audiomoth
 - BAR-LT, ~6.5kSEK, https://www.frontierlabs.com.au/
 - SONG METER SM4, ~10kSEK, https://www.frontierlabs.com.au/
 - CHORUS, ~7kSEK, https://www.titley-scientific.com/product/chorus/
