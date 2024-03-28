@@ -1,4 +1,7 @@
 # Bioacoustic monitoring hardware
+
+Great reference: [Choosing Equipment for Animal Bioacoustic Research](https://link.springer.com/chapter/10.1007/978-3-030-97540-1_2)
+
 Quick research on available bioacoustic monitoring hardware for monitoring Guillemots in the Baltic Sea. The site has power and network readily available, and just needs microphones installed which collect audio. The microphone streams should in the best case be available over wifi.
 
 - AudioMoth, ~1kSEK, https://www.openacousticdevices.info/audiomoth
