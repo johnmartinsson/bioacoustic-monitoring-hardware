@@ -4,12 +4,13 @@ Quick research on available bioacoustic monitoring hardware for monitoring Guill
 - AudioMoth, ~1kSEK, https://www.openacousticdevices.info/audiomoth
 - BAR-LT, ~6.5kSEK, https://www.frontierlabs.com.au/
 - SONG METER SM4, ~10kSEK, https://www.frontierlabs.com.au/
+- CHORUS, ~7kSEK, https://www.titley-scientific.com/product/chorus/
+- Swift, ~3.5kSEK, https://www.birds.cornell.edu/ccb/swift/
 
-Seems that all of these are made to stand of grid running on batteries for a long time and record audio onto an SD-card.
 
 ## Network of bioacoustic monitoring hardware
 
-The AudioMoth is farily cheap, samples at frequencies up to 384kHz, and is fully open source and configurable. I think that this may be the way forward.
+The AudioMoth is farily cheap, samples at frequencies up to 384kHz, and is fully open source and configurable. Let's start exploring this option.
 
 My current idea is that a good way forward would be to buy a couple of AudioMoths, turn them into USB Microphones, and connect them to a USB hub which is then connected to a Raspberry Pi. The Raspberry Pi will handle the streams of data and upload them to the central server.
 
