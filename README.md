@@ -34,6 +34,9 @@ Any AudioMoth can be turned into a USB Microphone:
 - https://www.openacousticdevices.info/usb-microphone
 - https://github.com/OpenAcousticDevices/Application-Notes/blob/master/Using_the_AudioMoth_Live_App_with_the_AudioMoth_USB_Microphone/Using_the_AudioMoth_Live_App_with_the_AudioMoth_USB_Microphone.pdf
 
+Performance test
+- https://github.com/kitzeslab/audiomoth-performance
+
 ### Other Microphones
 
 - https://www.grasacoustics.com/products/special-microphone/outdoor-microphones/product/202-41cn (Tip from Holger Klink)
