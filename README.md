@@ -36,6 +36,11 @@ Any AudioMoth can be turned into a USB Microphone:
 
 Performance test
 - https://github.com/kitzeslab/audiomoth-performance
+- https://www.ncbi.nlm.nih.gov/pmc/articles/PMC10256106/
+
+Specification sheet
+- AudioMoth 1.2.0 uses the SPU0410LR5H - [datasheet](https://media.digikey.com/pdf/Data%20Sheets/Knowles%20Acoustics%20PDFs/SPU0410LR5H-QB_RevH_3-27-13.pdf)
+- https://www.openacousticdevices.info/support/device-support/calibration-curve-for-audiomoth
 
 ### Other Microphones
 
