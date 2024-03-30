@@ -40,6 +40,7 @@ Performance test
 
 Specification sheet
 - AudioMoth 1.2.0 uses the SPU0410LR5H - [datasheet](https://media.digikey.com/pdf/Data%20Sheets/Knowles%20Acoustics%20PDFs/SPU0410LR5H-QB_RevH_3-27-13.pdf)
+- AudioMoth 1.0.0 and 1.1.0 use the SPM0408LE5H - [datasheet](https://media.digikey.com/pdf/Data%20Sheets/Knowles%20Acoustics%20PDFs/SPM0408LE5H-TB.pdf)
 - https://www.openacousticdevices.info/support/device-support/calibration-curve-for-audiomoth
 
 ### Other Microphones
