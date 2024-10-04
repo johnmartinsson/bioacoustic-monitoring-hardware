@@ -33,6 +33,7 @@ E.g., buy through this grouper campaing:
 Any AudioMoth can be turned into a USB Microphone:
 - https://www.openacousticdevices.info/usb-microphone
 - https://github.com/OpenAcousticDevices/Application-Notes/blob/master/Using_the_AudioMoth_Live_App_with_the_AudioMoth_USB_Microphone/Using_the_AudioMoth_Live_App_with_the_AudioMoth_USB_Microphone.pdf
+- https://github.com/OpenAcousticDevices/AudioMoth-USB-Microphone-Cmd
 
 Performance test
 - https://github.com/kitzeslab/audiomoth-performance
