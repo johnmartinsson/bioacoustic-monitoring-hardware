@@ -10,6 +10,7 @@ Quick research on available bioacoustic monitoring hardware for monitoring Guill
 - CHORUS, ~7kSEK, https://www.titley-scientific.com/product/chorus/
 - Swift, ~3.5kSEK, https://www.birds.cornell.edu/ccb/swift/
 - BUGG, ?, https://www.bugg.xyz/
+- BioSonic, ?, https://www.biosonic.se/
 
 I do not yet know if any of these support wifi out of the box.
 
