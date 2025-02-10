@@ -150,9 +150,6 @@ This table includes **all required components** along with **approximate costs**
 - **Microphones powered via PoE-fed Phantom Power Injectors** (alternative: 12V/230V Phantom Power).
 - **Weatherproof & Long-Term Deployment Ready**.
 
-🚀 **This setup ensures a robust, uninterrupted bioacoustic monitoring system for your Guillemot colony.**  
-Would you like **specific product recommendations for PoE switches, injectors, or enclosures**?
-
 
 # Milestone Considerations
 1. **Drivers in Milestone XProtect**  
