@@ -84,21 +84,28 @@ Given your study objectives—monitoring a **Guillemot colony** at a **cliffside
 By following this structured approach, you can ensure high-quality long-term recordings while minimizing equipment failures and data loss. Would you like specific microphone/recorder model recommendations based on budget constraints?
 
 
-# **📌 Final Verdict: PoE-Based Power Setup for Continuous Operation**
-Since **PoE is the preferred power source**, along with access to **12V and 230V power**, here’s the **final, optimized solution** for **4-5 months of uninterrupted Guillemot monitoring** using the **Annuncicom 200, MKE 600, and AT8010**.
+# **📌 Final Equipment List with Estimated Costs**
+This table includes **all required components** along with **approximate costs** for a **PoE-based, long-term Guillemot monitoring system**.
+
+| **Component** | **Function** | **Power Source** | **Approx. Cost** | **Notes** |
+|--------------|-------------|------------------|-----------------|---------|
+| **Annuncicom 200** | **Main ADC & network streamer** | ✅ **PoE (48V)** | **$200 - $400** | Supports **IP streaming, remote monitoring**. |
+| **Sennheiser MKE 600** | **Directional mic for individual birds** | ✅ **PoE-fed Phantom Power Injector (48V) OR Battery** | **$300 - $350** | **Battery mode works, but Phantom Power preferred**. |
+| **Audio-Technica AT8010** | **Omnidirectional mic for colony sounds** | ✅ **PoE-fed Phantom Power Injector (48V) OR Battery** | **$170 - $200** | **Captures full colony soundscape**. |
+| **PoE Network Switch (48V, IEEE 802.3af/at)** | **Main power source for Annuncicom 200 & Mic Power Injectors** | ✅ **230V AC → PoE** | **$80 - $150** | **Must be industrial-grade for reliability**. |
+| **PoE Phantom Power Injector (e.g., Radial StageBug SB-48, Audio-Technica AT8202)** | **Provides 48V Phantom Power for Mics** | ✅ **PoE-powered (48V) OR 12V DC/230V AC** | **$50 - $100 per mic** | **Each mic requires one injector if using Phantom Power**. |
+| **Cat6/Cat7 Ethernet Cable (Outdoor-Rated, Shielded)** | **Data + Power Transmission** | ✅ **From PoE switch** | **$20 - $50 per 30m (100ft)** | Use **shielded cables for durability**. |
+| **Weatherproof Mic Housing (Custom or Commercial)** | **Protects microphones from rain & wind** | ✅ **Mounted on-site** | **$50 - $150 per mic** | Includes **windscreens, shock mounts**. |
+| **Uninterruptible Power Supply (UPS, Optional)** | **Protects against power failures** | ✅ **230V AC backup for PoE switch** | **$100 - $250** | Extends uptime during power outages. |
 
 ---
 
-## **🔹 Final Equipment List**
-| **Component** | **Function** | **Power Source** | **Additional Notes** |
-|--------------|-------------|------------------|---------------------|
-| **Annuncicom 200** | **Main ADC & network streamer** | ✅ **PoE (48V)** | Also supports **16-30V DC**, but PoE is best. |
-| **Sennheiser MKE 600** | **Directional mic for individual birds** | ✅ **PoE-fed Phantom Power Injector (48V)** | Alternative: Use **12V-230V Phantom Power Supply**. |
-| **Audio-Technica AT8010** | **Omnidirectional mic for colony sounds** | ✅ **PoE-fed Phantom Power Injector (48V)** | Alternative: Use **12V-230V Phantom Power Supply**. |
-| **PoE Network Switch (48V, IEEE 802.3af/at)** | **Main power source for Annuncicom 200 & Mic Power Injectors** | ✅ **230V AC → PoE** | Industrial-grade, reliable switch. |
-| **PoE Phantom Power Injector (e.g., Radial StageBug SB-48, Audio-Technica AT8202)** | **Provides 48V Phantom Power for Mics** | ✅ **PoE-powered (48V)** | Alternative: Use **12V DC or 230V AC phantom power supply**. |
-| **Cat6/Cat7 Ethernet Cable (Outdoor-Rated)** | **Data + Power Transmission** | ✅ **From PoE switch** | Use **shielded cables for durability** in outdoor environments. |
-| **Weatherproof Mic Housing** | **Protects microphones from rain & wind** | ✅ **Custom Enclosures or Commercial Units** | Includes **windscreens & mounting hardware**. |
+### **📌 Total Estimated Cost (Per Monitoring Unit)**
+| **Component Group** | **Low Estimate** | **High Estimate** |
+|---------------------|----------------|----------------|
+| **Annuncicom 200 System** (PoE Switch, Cables, UPS) | **$300** | **$700** |
+| **MKE 600 + AT8010 + Power Injectors + Housings** | **$700** | **$1,100** |
+| **Total Estimated Cost (Per Site)** | **$1,000** | **$1,800** |
 
 ---
 
