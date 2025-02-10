@@ -2,7 +2,7 @@ Given your study objectives—monitoring a **Guillemot colony** at a **cliffside
 
 ---
 
-### **Key Considerations for Equipment Selection**
+# **Key Considerations for Equipment Selection**
 
 #### **1. Dynamic Range and Bit Depth**
 - **Why it’s important**: Guillemots can produce very loud calls close to the microphone, but you also want to capture quieter sounds from the colony.
@@ -83,7 +83,71 @@ Given your study objectives—monitoring a **Guillemot colony** at a **cliffside
 
 By following this structured approach, you can ensure high-quality long-term recordings while minimizing equipment failures and data loss. Would you like specific microphone/recorder model recommendations based on budget constraints?
 
-## Milestone Considerations
+
+# **📌 Final Verdict: PoE-Based Power Setup for Continuous Operation**
+Since **PoE is the preferred power source**, along with access to **12V and 230V power**, here’s the **final, optimized solution** for **4-5 months of uninterrupted Guillemot monitoring** using the **Annuncicom 200, MKE 600, and AT8010**.
+
+---
+
+## **🔹 Final Equipment List**
+| **Component** | **Function** | **Power Source** | **Additional Notes** |
+|--------------|-------------|------------------|---------------------|
+| **Annuncicom 200** | **Main ADC & network streamer** | ✅ **PoE (48V)** | Also supports **16-30V DC**, but PoE is best. |
+| **Sennheiser MKE 600** | **Directional mic for individual birds** | ✅ **PoE-fed Phantom Power Injector (48V)** | Alternative: Use **12V-230V Phantom Power Supply**. |
+| **Audio-Technica AT8010** | **Omnidirectional mic for colony sounds** | ✅ **PoE-fed Phantom Power Injector (48V)** | Alternative: Use **12V-230V Phantom Power Supply**. |
+| **PoE Network Switch (48V, IEEE 802.3af/at)** | **Main power source for Annuncicom 200 & Mic Power Injectors** | ✅ **230V AC → PoE** | Industrial-grade, reliable switch. |
+| **PoE Phantom Power Injector (e.g., Radial StageBug SB-48, Audio-Technica AT8202)** | **Provides 48V Phantom Power for Mics** | ✅ **PoE-powered (48V)** | Alternative: Use **12V DC or 230V AC phantom power supply**. |
+| **Cat6/Cat7 Ethernet Cable (Outdoor-Rated)** | **Data + Power Transmission** | ✅ **From PoE switch** | Use **shielded cables for durability** in outdoor environments. |
+| **Weatherproof Mic Housing** | **Protects microphones from rain & wind** | ✅ **Custom Enclosures or Commercial Units** | Includes **windscreens & mounting hardware**. |
+
+---
+
+## **🔹 Key Considerations**
+### **1️⃣ Power Management**
+- **PoE is the best option** → It provides **both power and network connectivity**, **simplifying installation**.
+- **Ensure the PoE switch supports 48V IEEE 802.3af/at standard.**
+- **Backup Option:** If PoE fails, **12V DC or 230V AC** can power **Annuncicom 200 + Phantom Power Supply**.
+
+### **2️⃣ Microphone Powering & Connectivity**
+- The **MKE 600 and AT8010 require Phantom Power (48V)**.
+- The **PoE switch alone does NOT provide Phantom Power** → Need **PoE-powered Phantom Power Injectors**.
+- **Alternative:** Use **a 230V or 12V Phantom Power Supply** if PoE injectors are unavailable.
+
+### **3️⃣ Environmental Protection**
+- **Microphones must be housed in weatherproof enclosures**.
+- **Wind noise reduction** → Use **furry windshields + shock mounts**.
+- **Annuncicom 200 should be installed in a sheltered area** to avoid moisture and temperature extremes.
+
+### **4️⃣ Network & Storage**
+- **Ensure network stability** → If PoE switch is on-site, it should have a **UPS (Uninterruptible Power Supply)** to handle power outages.
+- **Data Storage:** Annuncicom **streams audio over IP**, so **recording must be handled remotely**.
+- If **local storage is needed**, consider a **NAS or Edge Recording Device**.
+
+---
+
+## **🔹 Final Action Plan**
+✅ **Order Annuncicom 200** (Power via **PoE Switch**)  
+✅ **Order MKE 600 (Directional) + AT8010 (Omni)**  
+✅ **Order PoE Switch (48V, IEEE 802.3af/at)**  
+✅ **Order PoE Phantom Power Injectors (48V) for Mics**  
+✅ **Use Outdoor-Rated Ethernet Cable (Cat6/Cat7, Shielded)**  
+✅ **Install Weatherproof Microphone Enclosures + Wind Protection**  
+✅ **Verify Remote Network Storage or Recording Solution**  
+✅ **Test the full system before field deployment**  
+
+---
+
+## **🏆 Final Verdict: Fully PoE-Based, Reliable, and Low-Maintenance**
+- **No need for battery replacements** – everything runs from **PoE**.
+- **Annuncicom 200 + PoE Switch → Single Cable for Power & Data**.
+- **Microphones powered via PoE-fed Phantom Power Injectors** (alternative: 12V/230V Phantom Power).
+- **Weatherproof & Long-Term Deployment Ready**.
+
+🚀 **This setup ensures a robust, uninterrupted bioacoustic monitoring system for your Guillemot colony.**  
+Would you like **specific product recommendations for PoE switches, injectors, or enclosures**?
+
+
+# Milestone Considerations
 1. **Drivers in Milestone XProtect**  
    - Responsible for the “handshake” between XProtect and cameras, controlling PTZ, video streaming, and audio.
 
