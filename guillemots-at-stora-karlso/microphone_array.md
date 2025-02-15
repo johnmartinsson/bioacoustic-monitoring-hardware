@@ -1,5 +1,3 @@
-This is a fantastic real-world scenario, and you're right, perfectly uniform placement is likely impossible and perhaps even undesirable given the habitat structure.  Let's break down how to approach microphone placement in the Karlsö Murre Lab for sound event localization.
-
 **Key Takeaways for Your Situation:**
 
 1. **Embrace Non-Uniformity, but Optimize Within Constraints:**  You *will* have a non-uniform array.  Don't fight it. Instead, focus on *strategically* placing the microphones within the shelf structure to maximize localization performance given the constraints.  Optimization is crucial, but it's optimization *for a non-uniform array*.
