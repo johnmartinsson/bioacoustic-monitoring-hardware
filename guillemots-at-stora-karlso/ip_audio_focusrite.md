@@ -50,8 +50,6 @@ Based on your description and the documentation, here's a practical setup plan f
 11. **Windshields:** Professional-grade windshields for chosen microphones (Rycote Softie or similar).
 12. **Time Synchronization Solution (for Video):**  NTP server (if IP cameras support NTP), PTP Grandmaster clock (if cameras support PTP and you want higher accuracy), or plan for software-based synchronization using scratch mics.
 
-**Hardware Component Pricing Estimates (Starter Audio Recording Solution - 4 Mics, 1 MP8R, Rough EUR):**
-Okay, here's the final revised pricing table, now assuming you will **use an existing server or computer** for recording, removing the need for a dedicated server purchase. This further reduces the estimated cost of the audio recording solution.
 
 **Hardware Component Pricing Estimates (Minimal Audio Recording Solution - 4 Mics, 1 MP8R, Housing, et cetera, Rough EUR):**
 
