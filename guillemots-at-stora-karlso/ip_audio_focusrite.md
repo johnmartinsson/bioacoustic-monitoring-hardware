@@ -1,5 +1,3 @@
-Yes, absolutely! Let's use the documentation and project details to create a practical setup plan for your Baltic Sea Guillemot bioacoustic monitoring project.
-
 **1. Microphone Selection:**
 
 For high-quality bioacoustic recording in an outdoor environment like the Baltic Sea, here are microphone recommendations, prioritizing durability and audio quality:
