@@ -86,3 +86,109 @@ Here's a concise and practical summary highlighting the key differences between 
 - Use **PTP** when high-precision synchronization (microsecond accuracy) is required, typically in professional audio or broadcast scenarios.
 
 Given your scenario—integrating audio (AoIP/Dante) with video (Milestone)—the optimal setup would typically use a high-accuracy **PTP** for audio, with a secondary **NTP** service synchronized from the same PTP Grandmaster for Milestone’s video synchronization requirements.
+
+Setting up a hybrid synchronization scenario (PTP for audio and NTP for video) with your RedNet MP8R is achievable but involves careful planning. Below is a clear outline of what you'll need to consider, specifically relating to the **RedNet MP8R** device capabilities and configuration:
+
+---
+
+### 1. **Is Hybrid Sync Tricky to Set Up?**
+
+**Short answer:**  
+It is more involved than using NTP or PTP alone, but very manageable with good planning.
+
+**Detailed answer:**  
+Hybrid synchronization involves ensuring that both your NTP-based video (Milestone) and your PTP-based audio (RedNet MP8R via Dante) derive their time from a common reference, typically a GPS-based Grandmaster clock. It's straightforward once the concept is understood, but you'll need specialized hardware (PTP Grandmaster with NTP output capability).
+
+---
+
+### 2. **RedNet MP8R and Sync Capabilities**
+
+The RedNet MP8R supports the Dante audio-over-IP protocol, which uses Precision Time Protocol (**PTPv1** or **PTPv2/AES67**) as its synchronization standard:
+
+- **RedNet MP8R Clocking:**
+  - Automatically locks to a valid Dante network master (PTP).
+  - Can act as the network master if required.
+  - Supports pull-up/pull-down sample rates selectable via Dante Controller.
+
+**Important Considerations from the RedNet MP8R Manual:**
+- **Clock Source:** The MP8R automatically locks onto the Dante network's clock. If there isn't an existing network master, the MP8R can serve as the master.
+- **Supported sample rates:** 44.1 / 48 / 88.2 / 96 / 176.4 / 192 kHz.
+- **Redundancy:** Dual Ethernet connections and dual PSU inputs make the MP8R suitable for critical setups. Redundant network connections allow automatic failover.
+
+---
+
+### 3. **Hybrid Sync Setup Steps (Detailed for RedNet MP8R):**
+
+**Step 1: Install a GPS-based Grandmaster Clock**
+- Choose a Grandmaster clock device (e.g., Meinberg, Tekron, Evertz, or others).
+- Device should provide both:
+  - PTP output (IEEE 1588v2), ideally AES67 compliant.
+  - NTP output (for Milestone VMS).
+
+**Step 2: Configure Grandmaster**
+- Set it up with GPS reference to provide highly accurate UTC-based time.
+- Enable both **PTP output** and **NTP output**.
+
+**Step 3: Configure Dante network (RedNet MP8R)**
+- Connect the RedNet MP8R (via primary/secondary Dante ports) to a suitable network switch.
+- Set Dante network to use the Grandmaster’s PTP clock as the master clock.
+- RedNet MP8R will automatically lock to the PTP clock.
+
+**Step 4: Configure Milestone VMS**
+- Set Milestone's servers and IP cameras to synchronize with the **NTP output** from the same Grandmaster.
+- Confirm NTP synchronization across Milestone servers and cameras.
+
+**Step 5: Confirm Synchronization**
+- Once configured, audio and video are synchronized indirectly through a common reference. The video uses NTP, and the audio uses PTP, both tracing back to the same Grandmaster.
+
+---
+
+### 4. **Critical Points to Consider**
+
+- **Switch Compatibility:**  
+  PTP accuracy depends on network hardware. Professional-grade switches with IEEE 1588 (PTP-aware switches) are recommended for microsecond-level accuracy.
+
+- **Grandmaster Clock Accuracy:**  
+  A GPS-based Grandmaster clock ensures absolute accuracy and a stable common time reference.
+
+- **Network Topology & Traffic Management:**  
+  Use VLANs to separate audio (PTP) from general network traffic to ensure timing accuracy and minimize jitter.
+
+- **RedNet Control Software:**  
+  Make use of the RedNet Control software provided by Focusrite to:
+  - Check synchronization status.
+  - Confirm clock status ("Network Locked" indicator on the MP8R front panel and software interface).
+  - Manage channel configurations and gain compensation features.
+
+---
+
+### 5. **Potential Challenges**
+
+- **Mixed Protocol Management:**  
+  Managing two synchronization protocols (NTP and PTP) simultaneously introduces complexity; clearly document settings.
+- **Budget & Equipment:**  
+  The need for specialized Grandmaster clock equipment may impact your budget.
+- **Technical Knowledge:**  
+  Familiarity with Dante Controller, network management, and synchronization technology is required.
+
+---
+
+### 6. **Benefits of the Hybrid Approach**
+
+- **Accuracy:**  
+  Audio synchronization remains precise (microsecond accuracy), ensuring the integrity of bioacoustic recordings.
+- **Milestone Integration:**  
+  Full compatibility with Milestone VMS through NTP, fulfilling their explicit synchronization requirement.
+- **Scalability:**  
+  Future expansions (more audio or video devices) remain straightforward and centrally manageable.
+
+---
+
+### 7. **Conclusion & Recommendation**
+
+- While the hybrid synchronization solution is slightly more complex initially, it ensures:
+  - Optimal synchronization accuracy for audio (via PTP/Dante).
+  - Compliance with Milestone's NTP requirement for video.
+  - Highly reliable operation, crucial for long-term bioacoustic monitoring projects.
+
+Given the robust clocking and redundancy features of the **RedNet MP8R**, your choice to use this device positions your setup very effectively for professional-level synchronization and reliability.
