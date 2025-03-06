@@ -60,3 +60,29 @@ Given Milestone's explicit reliance on NTP, you cannot enforce PTP directly on t
 - Precise audio synchronization via PTP for Dante/AES67 audio-over-IP.
 
 This hybrid strategy represents best practice in professional broadcast/IP-audio environments.
+
+Here's a concise and practical summary highlighting the key differences between the synchronization accuracy guarantees of **NTP** (Network Time Protocol) and **PTP** (Precision Time Protocol):
+
+| Aspect                        | NTP (Network Time Protocol)                          | PTP (Precision Time Protocol - IEEE 1588)               |
+|-------------------------------|------------------------------------------------------|---------------------------------------------------------|
+| **Typical Accuracy**          | Milliseconds (1-10 ms typically)                     | Microseconds or sub-microseconds (<1 µs possible)      |
+| **Accuracy Guarantee**        | No strict deterministic guarantees; network-dependent | Deterministic, with clearly defined accuracy levels     |
+| **Network Requirements**      | Minimal: Can run over WAN/internet                   | High-quality local networks required for best accuracy  |
+| **Infrastructure Complexity** | Simple; can run on standard networks                 | More complex; requires PTP-aware switches for highest precision |
+| **Clock Hierarchy**           | Client-server (usually a public NTP server or local server)  | Master-follower (Grandmaster clock, boundary clocks, transparent clocks) |
+| **Traffic Type**              | Typically unicast                                    | Multicast or Unicast (PTPv2 supports both; multicast is common) |
+| **Use Cases**                 | General IT systems, general video surveillance (e.g., Milestone) | Professional broadcast, audio/video production, Dante/AES67 networks |
+| **Failure Mode**              | Graceful drift; relatively large synchronization errors possible | Small and stable synchronization errors; highly stable clocking |
+
+### Practical implications for your scenario:
+
+- **NTP** is sufficient for general video recording (like Milestone XProtect), where millisecond-level accuracy is adequate to synchronize video frames and timestamps. This accuracy is typically sufficient for surveillance video, playback, and security purposes.
+
+- **PTP** is essential for audio networks (Dante/AES67) in professional settings because it delivers sub-microsecond synchronization, necessary for precise phase-alignment and digital audio integrity—especially critical in scenarios involving live audio, multi-microphone arrays, and synchronized video-audio production workflows.
+
+### In short:
+
+- Use **NTP** when "close enough" synchronization is acceptable (milliseconds accuracy).
+- Use **PTP** when high-precision synchronization (microsecond accuracy) is required, typically in professional audio or broadcast scenarios.
+
+Given your scenario—integrating audio (AoIP/Dante) with video (Milestone)—the optimal setup would typically use a high-accuracy **PTP** for audio, with a secondary **NTP** service synchronized from the same PTP Grandmaster for Milestone’s video synchronization requirements.
