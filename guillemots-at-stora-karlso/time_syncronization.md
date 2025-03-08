@@ -79,6 +79,8 @@ Your "keep both times" approach – logging both the USB audio device's internal
 
 **In summary, your "keep both times" approach is the recommended strategy for your high-precision sound localization application. It addresses the audio clock drift issue effectively, avoids the complexities and potential imprecisions of real-time NTP clock correction, and provides the necessary data for accurate post-processing time alignment with your NTP-synchronized video streams.** You will be able to leverage the high accuracy of your GPS NTP server and the high-resolution timestamps of your USB audio device to achieve precise sound localization over your long recording period.
 
+## Read Timestamps from Zoom F8
+
 Yes, the Zoom F8n Pro is *excellent* for your purpose and *definitely* exposes its clock through its Timecode feature.  This is a professional-grade field recorder specifically designed for synchronized audio recording for film, video, and broadcast, where precise timecode is essential.
 
 **The Zoom F8n Pro and Timecode - Your Best Option**
@@ -178,6 +180,8 @@ Yes, with the Zoom F8n Pro's timecode and your GPS NTP server, achieving millise
 **In Conclusion**
 
 The Zoom F8n Pro, with its professional Timecode capabilities, is the *ideal* device for your long-duration, synchronized audio recording project. Focus on leveraging its Timecode feature for your "keep both times" approach. Start by exploring the Zoom F8 Control App as the most promising way to access the F8n Pro's Timecode for logging alongside your NTP time.  You will be able to achieve highly accurate and robust audio-video synchronization and sound localization with this setup.
+
+## Grandmaster Clock
 
 Yes, let's explore alternatives to the "keep both times" approach when using the Zoom F8n Pro and consider direct synchronization with a grandmaster clock.  You are right to think about this, as it's a common and often preferred method in professional synchronized audio/video setups.
 
