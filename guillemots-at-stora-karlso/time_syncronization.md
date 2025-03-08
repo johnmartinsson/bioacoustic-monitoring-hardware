@@ -79,6 +79,106 @@ Your "keep both times" approach – logging both the USB audio device's internal
 
 **In summary, your "keep both times" approach is the recommended strategy for your high-precision sound localization application. It addresses the audio clock drift issue effectively, avoids the complexities and potential imprecisions of real-time NTP clock correction, and provides the necessary data for accurate post-processing time alignment with your NTP-synchronized video streams.** You will be able to leverage the high accuracy of your GPS NTP server and the high-resolution timestamps of your USB audio device to achieve precise sound localization over your long recording period.
 
+Yes, the Zoom F8n Pro is *excellent* for your purpose and *definitely* exposes its clock through its Timecode feature.  This is a professional-grade field recorder specifically designed for synchronized audio recording for film, video, and broadcast, where precise timecode is essential.
+
+**The Zoom F8n Pro and Timecode - Your Best Option**
+
+The F8n Pro is *much better* than a generic USB audio interface for your application because it has:
+
+1. **Highly Accurate Timecode (TCXO):**  As you noted in the specs, it has a Temperature Compensated Crystal Oscillator (TCXO) with 0.2 ppm accuracy. This is *incredibly* accurate and stable timekeeping.  It's designed to maintain sync even when powered off and across long recording sessions.
+
+2. **Timecode In/Out (BNC Connectors):**  It has dedicated BNC connectors for Timecode Input and Output. This is a standard professional interface for timecode synchronization.
+
+3. **Timecode Modes:**  It supports various timecode modes (Free Run, Record Run, RTC Run, External Timecode, Jam Sync) giving you flexibility in how you synchronize and manage timecode.
+
+4. **Metadata Support:** It allows you to embed metadata, including timecode, into the audio files (BWF - Broadcast Wave Format), which is crucial for professional workflows.
+
+**Using the F8n Pro's Timecode for "Keep Both Times"**
+
+Instead of trying to get a sample count from a generic USB audio device, you should leverage the F8n Pro's *Timecode* as your primary "audio device time" source. Here's how the "keep both times" approach should be adapted:
+
+1. **F8n Pro as Timecode Source:**
+   * **Internal Timecode Generation:**  The F8n Pro can generate its own timecode using its accurate TCXO. You can set it to "Internal Free Run" mode, where it continuously generates timecode.
+   * **External Timecode Sync (Optional, but likely not needed for your island setup):** You *could* sync the F8n Pro's timecode to an external timecode source (if you had one), but for your setup with a GPS NTP server, internal timecode generation is probably sufficient.
+
+2. **Logging Process (Revised for Timecode):**
+
+   Your logging process now becomes:
+
+   * **Step 1: Get NTP System Time (Raspberry Pi):** Same as before. Get NTP system time from your Raspberry Pi.
+
+   * **Step 2: Get F8n Pro Timecode:**  This is the key change. You need to *read* the current timecode from the F8n Pro.  There are a few ways you might be able to do this:
+
+      * **Zoom F8 Control App (Most Likely Easiest):**
+         * The specs mention a "Zoom F8 Control App for iOS and Android" that allows "wireless remote control, file renaming, and metadata entry."
+         * **Check the F8 Control App:**  The app likely *displays* the current Timecode being generated or received by the F8n Pro.  There might even be a way to get the timecode value programmatically through the app's interface or an API (though less likely for a mobile app, but worth investigating).  This would be the *easiest* if the app provides this data.
+
+      * **USB Interface (as Audio Interface or Control):**
+         * **USB Audio Interface Mode:** When the F8n Pro is connected to a computer as a USB audio interface, it *might* be possible to access timecode information through the USB audio stream or a control interface.  This is less likely to be a standard feature of USB audio interfaces, but worth checking the F8n Pro's USB documentation.
+         * **USB Control Interface (if exists):** The F8n Pro *might* have a USB control protocol that allows you to send commands and receive status information, including timecode. Check the F8n Pro's manuals and SDK (Software Development Kit) if available.
+
+      * **Timecode Output (BNC) and a Timecode Reader (More Complex, Possibly Overkill):**
+         * You could configure the F8n Pro to *output* timecode from its BNC Timecode Out connector.
+         * You would then need a separate piece of hardware (a "timecode reader" or "timecode analyzer") that can read SMPTE timecode from the BNC output and interface with your Raspberry Pi (e.g., via USB or serial).
+         * This is likely **overkill** for your application unless you absolutely need to verify the timecode signal externally.  Using the app or USB interface (if possible) would be much simpler.
+
+   * **Step 3: Log Both Times Together:**  Same as before, log the NTP time and the *F8n Pro Timecode* together in your log file.  The timecode format is typically SMPTE timecode, which looks like `HH:MM:SS:FF` (Hours:Minutes:Seconds:Frames). You'll need to parse this format.  Example log line (CSV):
+      ```
+      2023-10-27T10:30:00.123456, 1698402600.123456, 01:23:45:29
+      ```
+      * `2023-10-27T10:30:00.123456` : Log timestamp.
+      * `1698402600.123456` : NTP system time.
+      * `01:23:45:29` : F8n Pro Timecode (example).
+
+3. **File Index and Synchronization Workflow:**
+
+   * **File Index NTP Times:**  Continue to record the NTP start and end times for each video and audio file in your file index.
+   * **Audio Timestamp Source: F8n Pro Timecode:**  Instead of sample counts, your audio timestamps *within* the audio files will now be derived from the F8n Pro's Timecode.
+   * **Post-Processing Synchronization:**
+      * **Use Logged Timecode and NTP:**  Your log file provides the mapping between the F8n Pro's timecode and NTP time.
+      * **Extract Timecode from Audio Files (BWF Metadata):**  The F8n Pro likely embeds timecode into the BWF audio files it records. You can use audio processing libraries or tools that can read BWF metadata to extract the timecode associated with audio samples within the files.
+      * **Map Timecode to NTP:**  Use your log data to establish the relationship between the F8n Pro's timecode and NTP time.  Because the F8n Pro's TCXO is so accurate, the drift should be minimal, but your log data will allow you to correct for any residual drift and align everything to absolute NTP time.
+
+**Advantages of Using F8n Pro Timecode:**
+
+* **Extremely Accurate Time Synchronization:** Timecode is designed for precise synchronization in professional audio and video workflows. The F8n Pro's TCXO provides exceptional accuracy.
+* **Robust and Reliable:** Timecode is a robust and well-established standard.
+* **Professional Workflow Compatibility:** Using timecode makes your audio data compatible with professional audio and video editing software and workflows that rely on timecode for synchronization.
+* **Simplified Synchronization Process:**  Using timecode simplifies the synchronization process compared to relying on sample counts from generic USB devices.
+
+**Next Steps - F8n Pro Specific:**
+
+1. **F8n Pro Manual and Documentation:**  **Crucially, download and thoroughly read the Zoom F8n Pro manual.** Look for sections on:
+   * Timecode settings and modes.
+   * Timecode output options.
+   * USB interface and control protocols.
+   * Zoom F8 Control App and its features.
+   * BWF metadata and timecode embedding.
+
+2. **Experiment with F8n Pro and Control App:**
+   * Set up the F8n Pro to generate internal timecode (Free Run mode).
+   * Install the Zoom F8 Control App on a phone or tablet.
+   * Connect the app to the F8n Pro via Bluetooth.
+   * **Explore the app interface to see if it displays the current Timecode.**  Look for any settings or options related to timecode output or data access.
+
+3. **Investigate USB Interface (Manual and SDK if available):**
+   * Check the F8n Pro manual for details on its USB interface capabilities beyond just audio interface mode.
+   * See if Zoom provides an SDK or API documentation for controlling the F8n Pro over USB.  This might reveal ways to programmatically access timecode.
+
+4. **If Control App or USB Access Works:**
+   * Develop your logging script to read Timecode from the F8n Pro (via the app or USB interface) and NTP time from your Raspberry Pi, and log them together.
+
+5. **If Control App/USB Access is Limited (Less Likely, but Possible):**
+   * Consider the Timecode Output (BNC) option, but only if simpler methods fail. You'd need to research timecode readers and how to interface them with your Raspberry Pi.
+
+**Millisecond Accuracy is Easily Achievable**
+
+Yes, with the Zoom F8n Pro's timecode and your GPS NTP server, achieving millisecond-level synchronization accuracy for audio and video alignment is *very* easily achievable and will be far more precise than you need for general audio-video alignment. Timecode itself is frame-accurate (typically 24, 25, 30 frames per second and higher), which is much finer than milliseconds.
+
+**In Conclusion**
+
+The Zoom F8n Pro, with its professional Timecode capabilities, is the *ideal* device for your long-duration, synchronized audio recording project. Focus on leveraging its Timecode feature for your "keep both times" approach. Start by exploring the Zoom F8 Control App as the most promising way to access the F8n Pro's Timecode for logging alongside your NTP time.  You will be able to achieve highly accurate and robust audio-video synchronization and sound localization with this setup.
+
 # IP Audio
 
 Based on the provided documentation, Milestone’s video management system (**XProtect VMS**) explicitly relies on **Network Time Protocol (NTP)** for synchronization. The official Milestone documentation emphasizes using an NTP server (either a dedicated NTP server, domain controller, or the VMS server itself acting as an NTP server) for time synchronization.
