@@ -65,6 +65,10 @@ Here is a succinct comparison of the two main approaches—(A) **Local Pi genera
 
 In practical terms, **Option A** is standard in professional film or continuous wildlife audio monitoring, where a local time master ensures consistent offset. **Option B** is simpler if you’re okay with minor network-based drift.
 
+
+
+
+
 # USB Audio
 Yes, you can absolutely connect a Milestone system to your Raspberry Pi GPS NTP server for time synchronization. Milestone VMS (Video Management Systems) are designed to synchronize their system clocks with NTP servers. This is a standard and recommended practice for ensuring accurate timestamps in video recordings and events.
 
