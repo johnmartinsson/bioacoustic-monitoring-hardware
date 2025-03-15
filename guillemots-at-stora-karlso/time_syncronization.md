@@ -66,6 +66,8 @@ Here is a succinct comparison of the two main approaches—(A) **Local Pi genera
 In practical terms, **Option A** is standard in professional film or continuous wildlife audio monitoring, where a local time master ensures consistent offset. **Option B** is simpler if you’re okay with minor network-based drift.
 
 
+--------------------------------------------------------------------------------
+--------------------------------------------------------------------------------
 
 
 
