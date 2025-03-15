@@ -1,3 +1,70 @@
+# Final Audio/Video Sync Proposals
+Here is a succinct comparison of the two main approaches—(A) **Local Pi generating LTC + local NTP** vs. (B) **Both Pi and Milestone just syncing to a common public NTP server**—and the impacts on audio and video synchronization. We will look at how each method influences (1) the Zoom’s eight-channel audio alignment and (2) the Zoom-audio–to–Milestone-video sync.
+
+---
+
+## Option A: Local RPi Generating LTC & Serving as the Local NTP Master
+
+1. **Audio Channel Sync (within Zoom)**  
+   - Independent of LTC or NTP. The F8(n) Pro’s internal crystal ensures all 8 channels remain phase‑locked (microseconds). You do not lose per‑channel alignment here.  
+   - The LTC feed from the Pi does *not* alter the Zoom’s sample clock. It merely re-labels timecode. So the 8 channels remain in near-perfect sync with each other.
+
+2. **Audio-to-Video Sync**  
+   - The Pi is your local time master. Milestone pulls NTP from the Pi. The Zoom is jammed to the Pi’s LTC. Everyone sees the *same* local time-of-day within a few ms, or even better if your LTC generation is well-coded.  
+   - Result: Audio timestamps and video timestamps line up to better than ±10 ms (often ±1–2 ms if done carefully).
+
+3. **Reliability & Jitter**  
+   - If the Pi is using GPS or a stable reference, your local LTC and NTP is extremely stable. The Zoom can be re-jammed daily or weekly to keep its timecode label from drifting more than a few frames over weeks.  
+   - Milestone sees the Pi’s NTP as well. So, if the Pi drifts, the entire system drifts together—keeping audio and video aligned.
+
+### Why This Helps
+- Having a local reference that both systems share typically yields tighter synchronization, especially if the Pi or Zoom can run at sub-ms offset from “true” GPS time.  
+- Internet NTP can vary by tens of ms, depending on network latency spikes.
+
+---
+
+## Option B: Both Pi and Milestone Rely on an External/Public NTP Server
+
+1. **Audio Channel Sync (within Zoom)**  
+   - Exactly the same as above: the 8 channels are locked together inside the Zoom hardware, unaffected by outside time.  
+   - The Zoom is not referencing external time for its audio clock, only for timecode labeling. By default, it might run on “Int Free Run,” which is stable to ±0.2 ppm.
+
+2. **Audio-to-Video Sync**  
+   - Milestone’s video server queries “pool.ntp.org” or some remote NTP. The Pi can also query the same public server.  
+   - The Zoom is jammed only occasionally (if at all) from the Pi, and that Pi is also reliant on an external NTP feed.  
+   - Potentially, each system sees slightly different “network path” delays. The Pi might settle at, say, +10 ms offset from actual time, while Milestone might be +25 ms offset. Over the course of days, those offsets might wander by ±10–50 ms.  
+   - Your audio files might end up with a timecode that is 10–50 ms different than the Milestone’s clock. That’s usually not enough to cause obvious lipsync issues, but can be noticeable for close study or longer segments.
+
+3. **Reliability & Jitter**  
+   - If your external NTP is stable and your network is good, you might keep offsets to ±10 ms or so. In some cases, it can be ±1–2 ms, but it can also spike if the route changes or you lose internet momentarily. Then Milestone’s next poll might be off by 20–30 ms from the Pi’s next poll.  
+   - If the internet goes down, each system free-runs on its own local clock. The Zoom drifts ~2 seconds over 120 days; a typical PC might drift even more. So you may see bigger divergences over time.
+
+### Why This Might Be “Good Enough”
+- If you only need your final audio to be within, say, 20–50 ms of the video clock, public NTP is often *fine*. 
+- If your network is consistent or you have close by NTP servers, the offset might remain in single-digit ms.
+
+---
+
+## Comparing the Two Approaches
+
+| **Factor**             | **A) Local LTC+NTP**                  | **B) Internet NTP**                     |
+|------------------------|----------------------------------------|-----------------------------------------|
+| Audio channel sync     | Always rock-solid (Zoom’s internal crystal). LTC does *not* affect it. | Same. Zoom’s internal clock ensures each channel is in microsecond sync. |
+| Audio ↔ Video offset   | Very tight (±1–10 ms typical). Everyone references the Pi. | Potential 10–50 ms offset or drift, depending on net conditions.          |
+| Handling drift over weeks/months | Pi’s LTC can jam the Zoom daily, so minimal drift in timecode labeling. | Zoom might drift ~2 sec per 120 days. You can jam occasionally by manually referencing internet time. |
+| Failure modes          | If Pi goes offline, audio still records, but time labels might not re-jam. Video might shift to net NTP or local fallback. | If net is lost, the Pi and Milestone each free-run. Time offsets can grow if local PC clocks drift more than Zoom. |
+| Complexity             | Slightly higher (you run your own local LTC and NTP server). | Lower complexity. Each device simply points to the same external NTP.    |
+| Overall Sync Accuracy  | **Higher** – single local master means minimal difference in time-of-day across systems. | **Moderate** – typically 10–50 ms if everything is stable, can occasionally be ±1–2 ms or up to ±100 ms if network fluctuations occur. |
+
+---
+
+## Which to Choose?
+
+- **If you need the best possible alignment** between your 8‑channel Zoom recordings and the Milestone video for subsequent correlation (e.g., analyzing exact behavior in video matching sound events within a few ms): **A local Pi LTC+NTP reference** is the cleanest method. Everyone references the same local clock, so you keep them extremely close (ms-level).
+- **If small offsets (10–50 ms) are acceptable**, you can rely on a common external NTP server. It often remains “good enough” for many camera + audio use cases. You’d either jam the Zoom’s timecode from the Pi occasionally (the Pi is also net-synced) or let the Zoom free-run. That might occasionally slip tens of ms from the video.
+
+In practical terms, **Option A** is standard in professional film or continuous wildlife audio monitoring, where a local time master ensures consistent offset. **Option B** is simpler if you’re okay with minor network-based drift.
+
 # USB Audio
 Yes, you can absolutely connect a Milestone system to your Raspberry Pi GPS NTP server for time synchronization. Milestone VMS (Video Management Systems) are designed to synchronize their system clocks with NTP servers. This is a standard and recommended practice for ensuring accurate timestamps in video recordings and events.
 
