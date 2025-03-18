@@ -5,8 +5,8 @@ Here is a succinct comparison of the two main approaches—(A) **Local Pi genera
 
 ## Option A: Local RPi Generating LTC & Serving as the Local NTP Master
 
-- [Uputronics GPS Hat RPi 5 Stratum-1 NTP Server Tutorial](https://github.com/tiagofreire-pt/rpi_uputronics_stratum1_chrony)
-- [ Adafruit GPS Hat RPi Stratum-1 NTP Server Tutorial](https://www.satsignal.eu/ntp/Raspberry-Pi-NTP.html)
+- [RPi Stratum-1 NTP Server - Uputronics GPS Hat](https://github.com/tiagofreire-pt/rpi_uputronics_stratum1_chrony)
+- [RPi Stratum-1 NTP Server - Adafruit GPS Hat](https://www.satsignal.eu/ntp/Raspberry-Pi-NTP.html)
 
 1. **Audio Channel Sync (within Zoom)**  
    - Independent of LTC or NTP. The F8(n) Pro’s internal crystal ensures all 8 channels remain phase‑locked (microseconds). You do not lose per‑channel alignment here.  
