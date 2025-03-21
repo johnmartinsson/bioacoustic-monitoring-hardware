@@ -1,0 +1,1 @@
+ltcgen test.wav --duration 00:00:30:00 --fps 30000/1001df --volume -18
