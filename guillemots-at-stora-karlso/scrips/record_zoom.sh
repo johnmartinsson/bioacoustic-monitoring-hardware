@@ -8,7 +8,7 @@ OUTPUT_DIR=~/zoom_recordings
 mkdir -p "$OUTPUT_DIR"
 
 # Device identifier (from 'arecord -l')
-DEVICE="hw:1,0"
+DEVICE="hw:2,0"
 
 # Number of channels (Zoom F8n Pro has 8 channels)
 CHANNELS=8
