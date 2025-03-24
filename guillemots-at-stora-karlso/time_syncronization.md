@@ -7,6 +7,7 @@ Here is a succinct comparison of the two main approaches—(A) **Local Pi genera
 
 - [RPi Stratum-1 NTP Server - Uputronics GPS Hat](https://github.com/tiagofreire-pt/rpi_uputronics_stratum1_chrony)
    - I did not force_turbo and force the CPU govenor always being performance from boot
+   - I did not disable wifi
 - [RPi Stratum-1 NTP Server - Adafruit GPS Hat](https://www.satsignal.eu/ntp/Raspberry-Pi-NTP.html)
 
 1. **Audio Channel Sync (within Zoom)**  
