@@ -1,3 +1,37 @@
+# Time Sync Audio/Video using Local Stratum-1 RPi 5 NTP Server
+
+I have followed this guide:
+
+- [RPi Stratum-1 NTP Server - Uputronics GPS Hat](https://github.com/tiagofreire-pt/rpi_uputronics_stratum1_chrony)
+   - I did not force_turbo and force the CPU govenor always being performance from boot (yet)
+   - I did not disable wifi (yet)
+
+Which seems to work nicely:
+
+```
+akulab@raspberrypi:~ $ chronyc tracking
+Reference ID    : 50505300 (PPS)
+Stratum         : 1
+Ref time (UTC)  : Mon Mar 24 14:06:43 2025
+System time     : 0.000000025 seconds fast of NTP time
+Last offset     : -0.000000040 seconds
+RMS offset      : 0.000005204 seconds
+Frequency       : 0.155 ppm fast
+Residual freq   : +0.001 ppm
+Skew            : 0.142 ppm
+Root delay      : 0.000000001 seconds
+Root dispersion : 0.000024024 seconds
+Update interval : 16.0 seconds
+Leap status     : Normal
+```
+
+## Some things that I have learned
+
+- Timecode input to the Zoom F8 Pro is only needed when recording directly onto the internal SD card, so we do not need this when running in audio interface mode.
+- When recording the Zoom F8 Pro in audio interface mode the timestamps of samples are set by the system clock and they do not affect the data sample stream. That is, the relative time between sampling pulses is driven by the internal clock of the Zoom, and then this sample stream is only labeled by timestamps from the computer recording the audio as they arrive. These timestamps do not affect the relative time position of the samples, and should not affect any localization performance.
+- Timestamps in a recording stream are always created in a monotonically increasing manner, and if corrected for drift, the time is run "fast" or "slow" for a short period of time to adjust to the new time. This is a forward looking operation that corrects time gradually to preserve the monitonic increasing behaviour of the timestamps. We therefore never get overlap or gaps in the timeline of the audio samples.
+- An internet based NTP server may be sufficient for synchronization of audio and video.
+
 # Final Audio/Video Sync Proposals
 Here is a succinct comparison of the two main approaches—(A) **Local Pi generating LTC + local NTP** vs. (B) **Both Pi and Milestone just syncing to a common public NTP server**—and the impacts on audio and video synchronization. We will look at how each method influences (1) the Zoom’s eight-channel audio alignment and (2) the Zoom-audio–to–Milestone-video sync.
 
