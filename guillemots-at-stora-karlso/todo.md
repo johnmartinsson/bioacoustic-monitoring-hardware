@@ -1,0 +1,12 @@
+# Purchasing
+- [x] Zoom F8 Pro
+- [x] Recording computer (RPi 5)
+- [x] Recording clock (Stratum-1 NTP server on RPi 5 through GPS)
+- [ ] 8x DPA microphones
+- [ ] 8x XLR cables
+- [ ] windshields
+- [ ] clamps and mounting
+- [ ] Low-quality microphones
+- [ ] 1x DT20 (IP audio)
+- [ ] 1x PoE Switch
+- [ ] network cables
