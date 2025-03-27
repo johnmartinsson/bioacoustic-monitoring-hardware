@@ -6,7 +6,7 @@
 - [ ] 8x XLR cables
 - [ ] windshields
 - [ ] clamps and mounting
-- [ ] Low-quality microphones
+- [x] Low-quality microphones
 - [ ] 1x DT20 (IP audio)
-- [ ] 1x PoE Switch
-- [ ] network cables
+- [x] 1x PoE Switch
+- [x] network cables
