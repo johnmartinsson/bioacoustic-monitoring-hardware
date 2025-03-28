@@ -17,7 +17,7 @@ def calculate_hash(filepath):
 
 def main():
     # Load configuration
-    config = configparser.ConfigParser()
+    config = configparser.RawConfigParser()
     config.read('config.ini')
 
     nas_directory = config['paths']['nas_directory']
