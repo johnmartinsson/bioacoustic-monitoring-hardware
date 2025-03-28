@@ -1,0 +1,5 @@
+- [ ] Configure recording pi
+- [ ] Configure clock pi
+- [ ] Configure analytics pi
+- [ ] Configure playback laptop
+- [ ] Configure nas server
