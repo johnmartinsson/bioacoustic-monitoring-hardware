@@ -23,7 +23,7 @@ def main():
     local_recording_dir = config['paths']['local_recording_dir']
     verification_channel = config['paths']['verification_channel']
     verified_files_log = config['files']['verified_files_log']
-    check_interval = config.getint('settings', 'record_duration')
+    check_interval = config.getint('recording', 'record_duration')
     log_level = config['logging']['level']
     log_format = config['logging']['format']
 
