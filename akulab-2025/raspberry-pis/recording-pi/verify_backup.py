@@ -17,7 +17,7 @@ def calculate_hash(filepath):
 
 def main():
     # Load configuration
-    config = configparser.ConfigParser()
+    config = configparser.RawConfigParser()
     config.read('config.ini')
     
     local_recording_dir = config['paths']['local_recording_dir']
