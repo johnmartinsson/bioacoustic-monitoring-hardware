@@ -1,6 +1,38 @@
 # The Akulab recording setup
 
 ```
+        [Recording Pi] (192.168.1.144)
+        ┌──────────────────────────────┐
+        │ Records audio to local dir   │
+        │ /home/akulab/akulab_2025/audio
+        │                              │
+        │ + Local USB backup script    │
+        │   → copies audio to USB      │
+        └────────────┬─────────────────┘
+                     │ SSHFS mount
+                     ▼
+        [Analytics Pi] (NAS Client)
+        ┌──────────────────────────────────────────────┐
+        │ Mounts Recording Pi audio dir via SSHFS      │
+        │ Mounts NAS audio dir via NFS                 │
+        │                                              │
+        │ ➤ Monitors for new files from Recording Pi   │
+        │ ➤ Verifies file completeness                 │
+        │ ➤ Transfers file to NAS via rsync            │
+        │ ➤ Verifies file integrity using SHA256       │
+        │ ➤ Deletes file from Recording Pi if verified │
+        │ ➤ Logs synced and verified files             │
+        └────────────────┬─────────────────────────────┘
+                         │ NFS mount
+                         ▼
+               [NAS] (192.168.1.196)
+               ┌───────────────────────────────┐
+               │ Stores verified audio files   │
+               │ /home/john/akulab_2025/nas/audio
+               └───────────────────────────────┘
+```
+
+```
 vim config.ini
 ```
 
