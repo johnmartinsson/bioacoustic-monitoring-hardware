@@ -38,7 +38,7 @@ echo "Channels: $CHANNELS"
 echo "Wait until: $WAIT_UNTIL"
 
 # Filenames: e.g., zoom_audio_20250328_130000_0001.wav
-FILENAME_PATTERN="${LOCAL_RECORDING_DIR}/zoom_audio_%Y%m%d_%H%M%S_%%04d.wav"
+FILENAME_PATTERN="${LOCAL_RECORDING_DIR}/zoom_audio_%Y%m%d_%H%M%S_%04d.wav"
 
 # Wait until top-of-hour with millisecond accuracy
 wait_until_top_of_hour_ms() {
