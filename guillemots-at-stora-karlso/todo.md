@@ -10,3 +10,17 @@
 - [ ] 1x DT20 (IP audio)
 - [x] 1x PoE Switch
 - [x] network cables
+- [ ] 2x RPi 5
+
+# Scripting
+1. Start recording
+2. Start data backup
+3. Run playback
+4. Start real time analytics
+
+- [ ] structure the project folder
+- [ ] structure the scripts
+- [ ] recording script
+- [ ] data backup scrips
+- [ ] real time analytics script
+- [ ] playback script
