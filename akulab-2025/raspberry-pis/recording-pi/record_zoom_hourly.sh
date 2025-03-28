@@ -7,7 +7,7 @@
 # 3) Segment the audio into chunks of the specified duration.
 #
 
-CONFIG_FILE="$(dirname "$0")/../../config.ini"
+CONFIG_FILE="$(dirname "$0")/config.ini"
 if [ ! -f "$CONFIG_FILE" ]; then
   echo "Config file not found: $CONFIG_FILE"
   exit 1
