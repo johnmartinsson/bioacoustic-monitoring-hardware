@@ -11,6 +11,7 @@ def main():
     
     local_recording_dir = config['paths']['local_recording_dir']
     nas_ip = config['network']['nas_ip']
+    nas_user = config['network']['nas_user']
     nas_directory = config['paths']['nas_directory']
     sync_log = config['files']['sync_log']
     check_interval = config.getint('settings', 'check_interval_pi')
@@ -54,7 +55,7 @@ def main():
 
             try:
                 subprocess.run([
-                    'rsync', '-av', filepath, f"pi@{nas_ip}:{nas_directory}/"
+                    'rsync', '-av', filepath, f"{nas_user}@{nas_ip}:{nas_directory}/"
                 ], check=True)  # Adjust 'pi@' if needed for your NAS user
                 logger.info(f"File {filename} successfully rsynced to {nas_ip}:{nas_directory}")
 
