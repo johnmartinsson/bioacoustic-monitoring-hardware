@@ -78,6 +78,48 @@
 
 ---
 
+## Tested 2025-03-28
+
+The setup has been tested by mounting the recording pi audio directory and using a laptop to act as the NAS by simply creating a directory. Recording is done on the recording pi, and then everything is transferred and verified by the analytics pi. Example output below:
+
+```
+sent 46.091.028 bytes  received 35 bytes  4.389.625,05 bytes/sec
+total size is 46.079.654  speedup is 1,00
+2025-03-28 14:19:18,030 - analytics_pi - INFO - File /home/john/akulab_2025/recording_pi/audio/zoom_audio_20250328_141548_0028.wav successfully transferred to /home/john/akulab_2025/nas/audio/zoom_audio_20250328_141548_0028.wav using rsync.
+2025-03-28 14:19:18,031 - analytics_pi - INFO - File zoom_audio_20250328_141548_0028.wav successfully transferred to NAS.
+2025-03-28 14:19:18,031 - analytics_pi - INFO - Verifying file zoom_audio_20250328_141548_0028.wav integrity.
+2025-03-28 14:19:28,635 - analytics_pi - INFO - File zoom_audio_20250328_141548_0028.wav verified successfully.
+2025-03-28 14:19:28,974 - analytics_pi - INFO - File zoom_audio_20250328_141848_0028.wav is not complete yet. Skipping.
+2025-03-28 14:19:29,335 - analytics_pi - INFO - File zoom_audio_20250328_141748_0028.wav is not complete yet. Skipping.
+sending incremental file list
+zoom_audio_20250328_141648_0028.wav
+
+sent 46.091.028 bytes  received 35 bytes  4.007.918,52 bytes/sec
+total size is 46.079.654  speedup is 1,00
+2025-03-28 14:19:42,044 - analytics_pi - INFO - File /home/john/akulab_2025/recording_pi/audio/zoom_audio_20250328_141648_0028.wav successfully transferred to /home/john/akulab_2025/nas/audio/zoom_audio_20250328_141648_0028.wav using rsync.
+2025-03-28 14:19:42,045 - analytics_pi - INFO - File zoom_audio_20250328_141648_0028.wav successfully transferred to NAS.
+2025-03-28 14:19:42,045 - analytics_pi - INFO - Verifying file zoom_audio_20250328_141648_0028.wav integrity.
+2025-03-28 14:19:53,129 - analytics_pi - INFO - File zoom_audio_20250328_141648_0028.wav verified successfully.
+2025-03-28 14:19:53,139 - analytics_pi - INFO - [DRY-RUN] Would remove: /home/john/akulab_2025/recording_pi/audio/zoom_audio_20250328_141548_0028.wav
+2025-03-28 14:19:53,139 - analytics_pi - INFO - Removed verified file zoom_audio_20250328_141548_0028.wav from Recording Pi.
+2025-03-28 14:19:53,140 - analytics_pi - INFO - [DRY-RUN] Would remove: /home/john/akulab_2025/recording_pi/audio/zoom_audio_20250328_141648_0028.wav
+2025-03-28 14:19:53,140 - analytics_pi - INFO - Removed verified file zoom_audio_20250328_141648_0028.wav from Recording Pi.
+sending incremental file list
+zoom_audio_20250328_141848_0028.wav
+
+sent 46.091.028 bytes  received 35 bytes  4.389.625,05 bytes/sec
+total size is 46.079.654  speedup is 1,00
+2025-03-28 14:21:05,465 - analytics_pi - INFO - File /home/john/akulab_2025/recording_pi/audio/zoom_audio_20250328_141848_0028.wav successfully transferred to /home/john/akulab_2025/nas/audio/zoom_audio_20250328_141848_0028.wav using rsync.
+2025-03-28 14:21:05,466 - analytics_pi - INFO - File zoom_audio_20250328_141848_0028.wav successfully transferred to NAS.
+2025-03-28 14:21:05,466 - analytics_pi - INFO - Verifying file zoom_audio_20250328_141848_0028.wav integrity.
+2025-03-28 14:21:15,364 - analytics_pi - INFO - File zoom_audio_20250328_141848_0028.wav verified successfully.
+2025-03-28 14:21:15,417 - analytics_pi - INFO - File zoom_audio_20250328_142048_0028.wav is not complete yet. Skipping.
+sending incremental file list
+zoom_audio_20250328_141748_0028.wav
+```
+
+
+### Starting the Recording Pipeline
 On each pi
 
 ```
