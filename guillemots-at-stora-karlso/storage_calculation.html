@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Acoustic Monitoring Storage Calculator</title>
+    <style>
+        body { font-family: sans-serif; }
+        .config { border: 1px solid #ccc; padding: 15px; margin-bottom: 20px; }
+        .config-title { font-weight: bold; margin-bottom: 10px; }
+        .input-group { margin-bottom: 10px; }
+        label { display: inline-block; width: 180px; text-align: right; margin-right: 10px; } /* Wider label */
+        input[type="number"], select { width: 100px; padding: 5px; }
+        #aac-bitrate-1, #aac-bitrate-2 { display: none; }
+        .results { margin-top: 20px; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <h1>Acoustic Monitoring Storage Calculator</h1>
+
+    <div class="config">
+        <div class="config-title">Microphone Configuration 1</div>
+        <div class="input-group">
+            <label for="sample-rate-1">Sample Rate (kHz):</label>
+            <input type="number" id="sample-rate-1" value="96"> kHz
+        </div>
+        <div class="input-group">
+            <label for="bit-depth-1">Bit Depth (bits):</label>
+            <select id="bit-depth-1">
+                <option value="16">16 bit</option>
+                <option value="24" selected>24 bit</option>
+            </select>
+        </div>
+        <div class="input-group">
+            <label for="codec-1">Codec:</label>
+            <select id="codec-1">
+                <option value="wav" selected>Raw WAV</option>
+                <option value="aac">AAC</option>
+            </select>
+        </div>
+        <div class="input-group" id="aac-bitrate-1">
+            <label for="aac-bitrate-input-1">AAC Bitrate (kbps):</label>
+            <input type="number" id="aac-bitrate-input-1" value="128"> kbps
+        </div>
+        <div class="input-group">
+            <label for="mic-count-1">Number of Microphones:</label>
+            <input type="number" id="mic-count-1" value="1">
+        </div>
+        <div class="input-group">
+            <label for="subsampling-1">Subsampling Fraction:</label>
+            <input type="number" id="subsampling-1" value="1" step="0.01"> (1 for full recording)
+        </div>
+        <div class="results">
+            <p><strong>Configuration 1 Storage (WAV):</strong> <span id="wav-storage-1">0 GB</span></p>
+            <p><strong>Configuration 1 Storage (AAC):</strong> <span id="aac-storage-1">0 GB</span></p>
+            <p><strong>Configuration 1 Total Storage:</strong> <span id="config-1-total-storage">0 GB</span></p>
+        </div>
+    </div>
+
+    <div class="config">
+        <div class="config-title">Microphone Configuration 2</div>
+        <div class="input-group">
+            <label for="sample-rate-2">Sample Rate (kHz):</label>
+            <input type="number" id="sample-rate-2" value="48"> kHz
+        </div>
+        <div class="input-group">
+            <label for="bit-depth-2">Bit Depth (bits):</label>
+            <select id="bit-depth-2">
+                <option value="16" selected>16 bit</option>
+                <option value="24">24 bit</option>
+            </select>
+        </div>
+        <div class="input-group">
+            <label for="codec-2">Codec:</label>
+            <select id="codec-2">
+                <option value="wav">Raw WAV</option>
+                <option value="aac" selected>AAC</option>
+            </select>
+        </div>
+        <div class="input-group" id="aac-bitrate-2">
+            <label for="aac-bitrate-input-2">AAC Bitrate (kbps):</label>
+            <input type="number" id="aac-bitrate-input-2" value="96"> kbps
+        </div>
+         <div class="input-group">
+            <label for="mic-count-2">Number of Microphones:</label>
+            <input type="number" id="mic-count-2" value="1">
+        </div>
+        <div class="input-group">
+            <label for="subsampling-2">Subsampling Fraction:</label>
+            <input type="number" id="subsampling-2" value="1" step="0.01"> (1 for full recording)
+        </div>
+        <div class="results">
+            <p><strong>Configuration 2 Storage (WAV):</strong> <span id="wav-storage-2">0 GB</span></p>
+            <p><strong>Configuration 2 Storage (AAC):</strong> <span id="aac-storage-2">0 GB</span></p>
+             <p><strong>Configuration 2 Total Storage:</strong> <span id="config-2-total-storage">0 GB</span></p>
+        </div>
+    </div>
+
+     <div class="input-group">
+        <label for="recording-days">Recording Duration (days):</label>
+        <input type="number" id="recording-days" value="7"> days
+    </div>
+
+     <div class="results" style="margin-top: 30px;">
+        <p><strong>Total Storage (Config 1 & 2):</strong> <span id="total-storage">0 GB</span></p>
+    </div>
+
+    <script>
+        function calculateStorage() {
+            const sampleRate1 = parseInt(document.getElementById('sample-rate-1').value) * 1000;
+            const bitDepth1 = parseInt(document.getElementById('bit-depth-1').value);
+            const codec1 = document.getElementById('codec-1').value;
+            const aacBitrate1 = parseInt(document.getElementById('aac-bitrate-input-1').value);
+            const micCount1 = parseInt(document.getElementById('mic-count-1').value);
+            const subsamplingFraction1 = parseFloat(document.getElementById('subsampling-1').value);
+
+            const sampleRate2 = parseInt(document.getElementById('sample-rate-2').value) * 1000;
+            const bitDepth2 = parseInt(document.getElementById('bit-depth-2').value);
+            const codec2 = document.getElementById('codec-2').value;
+            const aacBitrate2 = parseInt(document.getElementById('aac-bitrate-input-2').value);
+            const micCount2 = parseInt(document.getElementById('mic-count-2').value);
+            const subsamplingFraction2 = parseFloat(document.getElementById('subsampling-2').value);
+
+
+            const recordingDays = parseInt(document.getElementById('recording-days').value); // RESTORED!
+
+
+            const secondsPerDay1 = 24 * 60 * 60 * subsamplingFraction1;
+            const secondsPerDay2 = 24 * 60 * 60 * subsamplingFraction2;
+
+
+            let wavStorage1GB = 0;
+            let aacStorage1GB = 0;
+            let wavStorage2GB = 0;
+            let aacStorage2GB = 0;
+
+            if (codec1 === 'wav') {
+                wavStorage1GB = (sampleRate1 * bitDepth1 / 8 * secondsPerDay1 * recordingDays) / (1024 * 1024 * 1024) * micCount1;
+            } else if (codec1 === 'aac') {
+                aacStorage1GB = (aacBitrate1 * 1000 / 8 * secondsPerDay1* recordingDays) / (1024 * 1024 * 1024) * micCount1;
+            }
+
+            if (codec2 === 'wav') {
+                wavStorage2GB = (sampleRate2 * bitDepth2 / 8 * secondsPerDay2* recordingDays) / (1024 * 1024 * 1024) * micCount2;
+            } else if (codec2 === 'aac') {
+                aacStorage2GB = (aacBitrate2 * 1000 / 8 * secondsPerDay2* recordingDays) / (1024 * 1024 * 1024) * micCount2;
+            }
+
+
+            document.getElementById('wav-storage-1').textContent = codec1 === 'wav' ? wavStorage1GB.toFixed(2) + " GB" : "N/A";
+            document.getElementById('aac-storage-1').textContent = codec1 === 'aac' ? aacStorage1GB.toFixed(2) + " GB" : "N/A";
+            document.getElementById('wav-storage-2').textContent = codec2 === 'wav' ? wavStorage2GB.toFixed(2) + " GB" : "N/A";
+            document.getElementById('aac-storage-2').textContent = codec2 === 'aac' ? aacStorage2GB.toFixed(2) + " GB" : "N/A";
+
+            const config1TotalStorage = (codec1 === 'wav' ? wavStorage1GB : aacStorage1GB);
+            const config2TotalStorage = (codec2 === 'wav' ? wavStorage2GB : aacStorage2GB);
+
+
+            document.getElementById('config-1-total-storage').textContent = config1TotalStorage.toFixed(2) + " GB";
+            document.getElementById('config-2-total-storage').textContent = config2TotalStorage.toFixed(2) + " GB";
+
+
+            document.getElementById('total-storage').textContent = (config1TotalStorage + config2TotalStorage).toFixed(2) + " GB";
+        }
+
+        document.querySelectorAll('input, select').forEach(item => {
+            item.addEventListener('input', calculateStorage);
+        });
+        document.querySelectorAll('select').forEach(select => {
+            select.addEventListener('change', function() {
+                const configNumber = select.id.split('-')[1]; // CORRECTED LINE!
+                const aacBitrateDiv = document.getElementById(`aac-bitrate-${configNumber}`);
+                if (this.value === 'aac') {
+                    aacBitrateDiv.style.display = 'block';
+                } else {
+                    aacBitrateDiv.style.display = 'none';
+                }
+                calculateStorage();
+            });
+        });
+
+
+        calculateStorage(); // Initial calculation on page load
+    </script>
+
+</body>
+</html>
