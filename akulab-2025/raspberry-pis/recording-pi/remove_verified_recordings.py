@@ -10,7 +10,7 @@ def main():
 
     local_recording_dir = config['paths']['local_recording_dir']
     verified_files_log = config['files']['verified_files_log']
-    check_interval = config.getint('settings', 'check_interval_pi')
+    check_interval = config.getint('settings', 'record_duration')
     max_local_files = config.getint('settings', 'max_local_files')
     log_level = config['logging']['level']
     log_format = config['logging']['format']

@@ -21,7 +21,7 @@ def main():
     nas_user = config['network']['nas_user']
     nas_directory = config['paths']['nas_directory']
     sync_log = config['files']['sync_log']
-    check_interval = config.getint('settings', 'check_interval_pi')
+    check_interval = config.getint('settings', 'record_duration')
     log_level = config['logging']['level']
     log_format = config['logging']['format']
 
