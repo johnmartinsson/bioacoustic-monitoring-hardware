@@ -6,6 +6,7 @@ import time
 import signal
 import sys
 import configparser
+import subprocess
 
 # Load configuration from config.ini
 config = configparser.ConfigParser()
@@ -25,6 +26,15 @@ DRY_RUN = config.getboolean('settings', 'dry_run', fallback=False)
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 logger = logging.getLogger("analytics_pi")
 
+def transfer_file_with_rsync(source, destination):
+    """Transfer a file using rsync."""
+    try:
+        subprocess.run(['rsync', '-av', source, destination], check=True)
+        logger.info(f"File {source} successfully transferred to {destination} using rsync.")
+        return True
+    except subprocess.CalledProcessError as e:
+        logger.error(f"rsync failed for file {source}: {e}")
+        return False
 
 def calculate_hash(filepath, buffer_size=65536):
     """Calculate SHA256 hash of a file."""
@@ -34,12 +44,19 @@ def calculate_hash(filepath, buffer_size=65536):
             hasher.update(chunk)
     return hasher.hexdigest()
 
+def is_file_size_stable(filepath, check_interval=2):
+    """Check if the file size is stable over a short period."""
+    initial_size = os.path.getsize(filepath)
+    time.sleep(check_interval)
+    current_size = os.path.getsize(filepath)
+    return initial_size == current_size
 
 def is_file_complete(filepath):
-    """Check if a file is complete by checking its modification time."""
+    """Check if a file is complete by checking its modification time and size stability."""
     last_modified = os.path.getmtime(filepath)
-    return (time.time() - last_modified) > MODIFICATION_THRESHOLD
-
+    if (time.time() - last_modified) > MODIFICATION_THRESHOLD:
+        return is_file_size_stable(filepath)
+    return False
 
 def retry_operation(operation, *args, retries=MAX_RETRIES, **kwargs):
     """Retry an operation multiple times in case of failure."""
@@ -108,7 +125,7 @@ def main():
                 continue
 
             # Transfer file to NAS
-            if retry_operation(shutil.copy2, recording_pi_path, nas_path) is None:
+            if not transfer_file_with_rsync(recording_pi_path, nas_path):
                 continue
             synced_files.add(filename)
             with open(SYNC_LOG, 'a') as f:
