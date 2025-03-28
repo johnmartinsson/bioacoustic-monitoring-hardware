@@ -12,8 +12,8 @@ config = configparser.ConfigParser()
 config.read('config.ini')
 
 # Configuration
-RECORDING_PI_AUDIO_DIR = config['paths']['recording_pi_dir']
-NAS_AUDIO_DIR = config['paths']['nas_dir']
+RECORDING_PI_AUDIO_DIR = config['paths']['recording_pi_audio_dir']
+NAS_AUDIO_DIR = config['paths']['nas_audio_dir']
 SYNC_LOG = config['paths']['sync_log']
 VERIFIED_FILES_LOG = config['paths']['verified_files_log']
 CHECK_INTERVAL = config.getint('settings', 'check_interval')
