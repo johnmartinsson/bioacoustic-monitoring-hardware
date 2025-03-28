@@ -56,6 +56,11 @@ def main():
             if filename in synced_files:
                 continue
 
+            # Skip if the file is not complete
+            if not is_file_complete(filepath):
+                logger.info(f"File {filename} is not complete yet, skipping")
+                continue
+
             # Attempt to rsync the file to the NAS
             logger.info(f"Found new file to sync: {filename}. Initiating rsync to {nas_ip}:{nas_directory}")
             print(f"Syncing file: {filename} to {nas_ip}:{nas_directory}")

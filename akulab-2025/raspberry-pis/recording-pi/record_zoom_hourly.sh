@@ -73,6 +73,8 @@ if [ "$WAIT_UNTIL" == "hour" ]; then
 elif [ "$WAIT_UNTIL" == "minute" ]; then
   echo "Waiting for next top-of-minute with ms accuracy..."
   wait_until_top_of_minute_ms
+elif [ "$WAIT_UNTIL" == "none" ]; then
+  echo "Skipping wait_until. Starting recording immediately."
 else
   echo "Invalid wait_until value in config.ini: $WAIT_UNTIL. Using default 'minute'."
   wait_until_top_of_minute_ms
