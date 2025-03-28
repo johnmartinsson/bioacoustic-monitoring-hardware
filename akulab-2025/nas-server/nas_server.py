@@ -23,7 +23,7 @@ def main():
     nas_directory = config['paths']['nas_directory']
     synced_files_log_nas = config['files']['synced_files_log_nas']
     verification_channel = config['paths']['verification_channel']
-    check_interval = config.getint('settings', 'check_interval_nas')
+    check_interval = config.getint('settings', 'recording_duration')
     log_level = config['logging']['level']
     log_format = config['logging']['format']
 
