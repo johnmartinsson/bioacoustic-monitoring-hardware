@@ -53,6 +53,26 @@ wait_until_top_of_hour_ms() {
   sleep "$sec_float"
 }
 
+wait_until_top_of_minute_ms() {
+  # Current epoch time in milliseconds
+  now_ms=$(date +%s%3N)   # e.g. 1698742412345 (ms)
+
+  # ms past the current minute:
+  ms_into_minute=$((now_ms % 60000))
+
+  # Time until top-of-minute
+  ms_left=$((60000 - ms_into_minute))
+  if [ "$ms_left" -eq 60000 ]; then
+    ms_left=0  # already exactly HH:MM:00.000
+  fi
+
+  # Convert to fractional seconds
+  sec_float=$(awk -v val="$ms_left" 'BEGIN {printf "%.3f", val/1000.0}')
+
+  echo "Current time: $(date +%T.%3N). Sleeping $sec_float second(s) to next full minute..."
+  sleep "$sec_float"
+}
+
 # echo "Waiting for the next top-of-hour boundary with millisecond accuracy..."
 wait_until_top_of_hour_ms
 echo "Reached top-of-hour. Launching ffmpeg..."

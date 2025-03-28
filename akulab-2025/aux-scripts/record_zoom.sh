@@ -1,17 +1,17 @@
 #!/bin/bash
 
 # Duration of each file in minutes (edit as needed)
-DURATION_MINUTES=1
+DURATION_MINUTES=2
 
 # Directory where recordings will be saved
-OUTPUT_DIR=~/zoom_recordings
+OUTPUT_DIR=$1
 mkdir -p "$OUTPUT_DIR"
 
 # Device identifier (from 'arecord -l')
 DEVICE="hw:2,0"
 
 # Number of channels (Zoom F8n Pro has 8 channels)
-CHANNELS=8
+CHANNELS=1
 SAMPLE_RATE=48000
 
 # Segment duration in seconds
