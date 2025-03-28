@@ -2,59 +2,69 @@ import os
 import time
 import hashlib
 import logging
-
-# Configuration
-NAS_DIRECTORY = "simulated_nas_storage"
-SYNCED_FILES_LOG = "nas_synced_files.log"
-VERIFICATION_CHANNEL = "verification_channel.txt"  # Shared file for verification status
-CHECK_INTERVAL_NAS = 1  # seconds
-
-# Setup logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - NAS Server - %(levelname)s - %(message)s')
+import configparser
 
 def calculate_hash(filepath):
     """Calculates SHA256 hash of a file."""
     hasher = hashlib.sha256()
-    with open(filepath, 'rb') as file:
+    with open(filepath, 'rb') as f:
         while True:
-            chunk = file.read(4096)
+            chunk = f.read(4096)
             if not chunk:
                 break
             hasher.update(chunk)
     return hasher.hexdigest()
 
-def monitor_nas_directory():
-    """Monitors the NAS directory for new files and verifies them."""
-    synced_files = set() # Keep track of files already synced
-    if os.path.exists(SYNCED_FILES_LOG):
-        with open(SYNCED_FILES_LOG, 'r') as log_file:
-            for line in log_file:
-                synced_files.add(line.strip())
+def main():
+    # Load configuration
+    config = configparser.ConfigParser()
+    config.read('config.ini')
 
-    logging.info(f"NAS Server monitoring directory: {NAS_DIRECTORY}")
+    nas_directory = config['paths']['nas_directory']
+    synced_files_log_nas = config['files']['synced_files_log_nas']
+    verification_channel = config['paths']['verification_channel']
+    check_interval = config.getint('settings', 'check_interval_nas')
+    log_level = config['logging']['level']
+    log_format = config['logging']['format']
+
+    # Setup logging
+    logging.basicConfig(level=log_level, format=log_format)
+    logger = logging.getLogger('nas_server')
+
+    if not os.path.exists(nas_directory):
+        os.makedirs(nas_directory)
+
+    if not os.path.exists(verification_channel):
+        open(verification_channel, 'w').close()
+
+    if not os.path.exists(synced_files_log_nas):
+        open(synced_files_log_nas, 'w').close()
+
+    # Keep track of files we've already processed
+    with open(synced_files_log_nas, 'r') as f:
+        processed_files = set(line.strip() for line in f if line.strip())
+
+    logger.info(f"NAS Server monitoring directory: {nas_directory}")
 
     while True:
-        for filename in os.listdir(NAS_DIRECTORY):
-            filepath = os.path.join(NAS_DIRECTORY, filename)
-            if os.path.isfile(filepath) and filename not in synced_files:
-                logging.info(f"New file detected on NAS: {filename}")
+        for filename in os.listdir(nas_directory):
+            filepath = os.path.join(nas_directory, filename)
+            if os.path.isfile(filepath) and filename not in processed_files:
+                logger.info(f"New file detected on NAS: {filename}")
                 file_hash = calculate_hash(filepath)
-                logging.info(f"Calculated hash for {filename}: {file_hash}")
+                logger.info(f"Calculated hash for {filename}: {file_hash}")
 
-                # Simulate sending hash to Raspberry Pi (using shared file)
-                with open(VERIFICATION_CHANNEL, 'w') as channel_file:
-                    channel_file.write(f"{filename}:{file_hash}")
-                logging.info(f"Sent hash for {filename} to Raspberry Pi via {VERIFICATION_CHANNEL}")
+                # Write this file’s hash to the shared verification channel
+                with open(verification_channel, 'w') as channel:
+                    channel.write(f"{filename}:{file_hash}")
+                logger.info(f"Sent hash for {filename} to Raspberry Pi via {verification_channel}")
 
-                synced_files.add(filename)
-                with open(SYNCED_FILES_LOG, 'a') as log_file:
-                    log_file.write(filename + '\n')
-                logging.info(f"File {filename} processed and logged.")
+                processed_files.add(filename)
+                with open(synced_files_log_nas, 'a') as pf:
+                    pf.write(filename + '\n')
+                logger.info(f"File {filename} processed and logged.")
 
-        time.sleep(CHECK_INTERVAL_NAS)
+        time.sleep(check_interval)
 
-if __name__ == "__main__":
-    os.makedirs(NAS_DIRECTORY, exist_ok=True)
-    if not os.path.exists(VERIFICATION_CHANNEL):
-        open(VERIFICATION_CHANNEL, 'w').close() # Create verification channel if it doesn't exist
-    monitor_nas_directory()
+if __name__ == '__main__':
+    main()
