@@ -48,6 +48,10 @@ def main():
 
     while True:
         for filename in os.listdir(nas_directory):
+            # Skip temporary files (e.g., files starting with a dot or containing random suffixes)
+            if filename.startswith('.') or not filename.endswith('.wav'):
+                continue
+
             filepath = os.path.join(nas_directory, filename)
             if os.path.isfile(filepath) and filename not in processed_files:
                 logger.info(f"New file detected on NAS: {filename}")

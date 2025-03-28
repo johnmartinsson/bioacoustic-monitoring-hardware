@@ -4,6 +4,13 @@ import subprocess
 import logging
 import configparser
 
+
+def is_file_complete(filepath):
+    """Check if a file is complete by checking its modification time."""
+    MODIFICATION_THRESHOLD = 5  # seconds
+    last_modified = os.path.getmtime(filepath)
+    return (time.time() - last_modified) > MODIFICATION_THRESHOLD
+
 def main():
     # Load configuration
     config = configparser.RawConfigParser()
