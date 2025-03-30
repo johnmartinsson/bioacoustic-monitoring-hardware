@@ -113,7 +113,7 @@ ffmpeg -loglevel info \
     -segment_format wav \
     -strftime 1 \
     -rf64 always \
-    "zoom_audio_%Y%m%d_%H%M%S.wav"
+    "${LOCAL_RECORDING_DIR}/zoom_audio_%Y%m%d_%H%M%S.wav"
 
 
 echo "Recording process started. Files will be segmented in ${RECORD_DURATION} second chunks."
