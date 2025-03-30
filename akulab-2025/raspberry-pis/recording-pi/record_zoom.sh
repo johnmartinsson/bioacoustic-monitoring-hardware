@@ -83,23 +83,37 @@ fi
 echo "Reached specified time boundary. Launching ffmpeg..."
 
 # Record from Zoom F8 Pro
-ffmpeg -loglevel info \
-    -f alsa \
-    -channels "$CHANNELS" \
-    -sample_rate "$SAMPLE_RATE" \
-    -acodec pcm_f32le \
-    -i "hw:2,0" \
-    -f segment \
-    -segment_time "$RECORD_DURATION" \
-    -segment_format wav \
-    -segment_atclocktime 0 \
-    -strftime 1 \
-    -reset_timestamps 1 \
-    -write_bext 1 \
-    -rf64 always \
-    -metadata creation_time="$(date -u +%Y-%m-%dT%H:%M:%S.%3NZ)" \
-    -metadata coding_history="ZoomF8Pro USB ${SAMPLE_RATE}Hz/${CHANNELS}ch float" \
-    "$FILENAME_PATTERN"
+# ffmpeg -loglevel info \
+#     -f alsa \
+#     -channels "$CHANNELS" \
+#     -sample_rate "$SAMPLE_RATE" \
+#     -acodec pcm_f32le \
+#     -i "hw:2,0" \
+#     -f segment \
+#     -segment_time "$RECORD_DURATION" \
+#     -segment_format wav \
+#     -segment_atclocktime 0 \
+#     -strftime 1 \
+#     -reset_timestamps 1 \
+#     -write_bext 1 \
+#     -rf64 always \
+#     -metadata creation_time="$(date -u +%Y-%m-%dT%H:%M:%S.%3NZ)" \
+#     -metadata coding_history="ZoomF8Pro USB ${SAMPLE_RATE}Hz/${CHANNELS}ch float" \
+#     "$FILENAME_PATTERN"
+
+ffmpeg -f alsa \
+  -channels 8 \
+  -sample_rate "$SAMPLE_RATE" \
+  -acodec pcm_f32le \
+  -i hw:2,0 \
+  -f segment \
+  -segment_time "$RECORD_DURATION" \
+  -segment_atclocktime 1 \
+  -strftime 1 \
+  -segment_format wav \
+  -rf64 always \
+  "zoom_audio_%Y%m%d_%H%M%S.wav"
+
 
 echo "Recording process started. Files will be segmented in ${RECORD_DURATION} second chunks."
 echo "Press Ctrl+C to stop recording."
