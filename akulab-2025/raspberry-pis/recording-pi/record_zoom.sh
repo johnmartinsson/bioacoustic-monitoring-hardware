@@ -101,18 +101,19 @@ echo "Reached specified time boundary. Launching ffmpeg..."
 #     -metadata coding_history="ZoomF8Pro USB ${SAMPLE_RATE}Hz/${CHANNELS}ch float" \
 #     "$FILENAME_PATTERN"
 
-ffmpeg -f alsa \
-  -channels 8 \
-  -sample_rate "$SAMPLE_RATE" \
-  -acodec pcm_f32le \
-  -i hw:2,0 \
-  -f segment \
-  -segment_time "$RECORD_DURATION" \
-  -segment_atclocktime 1 \
-  -strftime 1 \
-  -segment_format wav \
-  -rf64 always \
-  "zoom_audio_%Y%m%d_%H%M%S.wav"
+ffmpeg -loglevel info \
+    -f alsa \
+    -channels 8 \
+    -sample_rate "$SAMPLE_RATE" \
+    -acodec pcm_f32le \
+    -i hw:2,0 \
+    -f segment \
+    -segment_time "$RECORD_DURATION" \
+    -segment_atclocktime 1 \
+    -segment_format wav \
+    -strftime 1 \
+    -rf64 always \
+    "zoom_audio_%Y%m%d_%H%M%S.wav"
 
 
 echo "Recording process started. Files will be segmented in ${RECORD_DURATION} second chunks."
