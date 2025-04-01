@@ -32,8 +32,269 @@ Leap status     : Normal
 - Timestamps in a recording stream are always created in a monotonically increasing manner, and if corrected for drift, the time is run "fast" or "slow" for a short period of time to adjust to the new time. This is a forward looking operation that corrects time gradually to preserve the monitonic increasing behaviour of the timestamps. We therefore never get overlap or gaps in the timeline of the audio samples.
 - An internet based NTP server may be sufficient for synchronization of audio and video.
 
+# Grandmaster Clock Serving Time over NTP and PTP
+
+Below is a **high-level recipe** for turning a Raspberry Pi 5 plus the Uputronics GPS/PPS HAT into a **GPS‐locked PTP Grandmaster** using Jeff Geerling’s “Time Pi” Ansible project (or manual steps, if you prefer). This setup will let your Pi distribute super-accurate time across your LAN via the Precision Time Protocol (PTP), while also serving NTP to devices that only speak NTP.
+
+---
+
+## 1. Hardware Overview
+
+1. **Raspberry Pi 5** (with its built-in Gigabit Ethernet, which supports hardware PTP timestamping).  
+2. **Uputronics GPS/RTC Expansion Board** for Pi:  
+   - Has a u-blox GPS module (e.g. Neo-M8, Zed-F9, etc.),  
+   - Brings out a PPS (pulse-per-second) signal you can feed to the Pi’s GPIO for sub-microsecond synchronization,  
+   - Offers a real-time clock (RTC), which can help keep time if you lose power or GPS temporarily.  
+3. **GPS Antenna**:  
+   - Must attach to the Uputronics board’s SMA connector, ideally installed with a clear view of the sky.  
+4. **Network**:  
+   - The Pi’s built-in Ethernet is used to serve PTP time on your LAN.
+
+*(If you need PoE or specific wiring, make sure to add the relevant PoE HAT or power arrangement, but that’s optional.)*
+
+---
+
+## 2. System Setup and Wiring
+
+1. **Mount the Uputronics HAT** on the Pi 5:  
+   - Plug its 40-pin header onto the Pi 5’s GPIO.  
+   - Ensure the PPS pin on the Uputronics board goes to GPIO4 (or whichever default PPS pin the HAT uses) – typically they align so you do not have to do anything special.  
+2. **Connect the GPS antenna** to the Uputronics SMA port.  
+3. **Attach Ethernet** from the Pi 5’s RJ45 port to your network switch.  
+   - The Pi 5’s built-in NIC supports hardware timestamping natively. No separate NIC is required.
+
+---
+
+## 3. Install Raspberry Pi OS
+
+1. **Flash** the latest Raspberry Pi OS (64-bit recommended) to a microSD (or the Pi 5’s built-in eMMC, if relevant).  
+2. **Boot** the Pi and complete initial config (locale, etc.).  
+3. **Update** packages:  
+   ```bash
+   sudo apt update && sudo apt full-upgrade -y
+   ```
+4. **(Optional) Reboot**:
+   ```bash
+   sudo reboot
+   ```
+
+*(You should be running at least Linux kernel 6.1 or newer—if unsure, do `uname -r`.)*
+
+---
+
+## 4. Enable PPS and GPIO Overlays
+
+The Pi 5’s default firmware overlay for PPS might require adding lines to `/boot/config.txt`. If you’re using Jeff’s Ansible role, it can do this automatically. Otherwise, do so manually:
+
+```ini
+# /boot/firmware/config.txt
+
+# Make sure UART is on for the GPS serial (if needed):
+dtoverlay=uart0
+dtparam=uart0=on
+
+# If your Uputronics board expects PPS on a certain pin, use the pps-gpio overlay:
+dtoverlay=pps-gpio,gpiopin=4
+```
+
+*(If the HAT uses a different pin for PPS, adjust `gpiopin` accordingly. Check the Uputronics docs.)*
+
+---
+
+## 5. Choose an Approach: “Time Pi” (Ansible) or Manual
+
+### A. **Using Jeff’s “Time Pi” Ansible Playbook**
+
+1. **Clone** the repo on your local machine (or directly on the Pi):
+   ```bash
+   git clone https://github.com/geerlingguy/time-pi.git
+   cd time-pi
+   ```
+2. **Copy example config**:
+   ```bash
+   cp example.hosts.ini hosts.ini
+   cp example.config.yml config.yml
+   ```
+   - Edit `hosts.ini`, replace `time-pi.local` with your Pi’s hostname or IP.
+   - Edit `config.yml`, adjusting:
+     - `gpsd_devices: "/dev/ttyAMA0"` (the serial device the HAT uses),
+     - `chrony_allow: "192.168.1.0/24"` (your LAN subnet), etc.
+3. **Install Ansible** on your control machine (e.g., `sudo apt install ansible`).
+4. **Run** the playbook:
+   ```bash
+   ansible-playbook -i hosts.ini main.yml
+   ```
+   - The playbook will install and configure:
+     - `gpsd` (for GPS reading),
+     - `chrony` (NTP, locked to GPS),
+     - `linuxptp` (to run `ptp4l` in Grandmaster mode),  
+     - Additional Pi config overlays (if needed).
+5. **Reboot** if it doesn’t automatically. Then check:
+
+   ```bash
+   # Check gpsd:
+   sudo systemctl status gpsd
+   gpsmon -n
+
+   # Check Chrony:
+   chronyc sources -v
+   chronyc tracking
+
+   # Check PTP:
+   sudo ptp4l -m -i eth0 --masterOnly 1   # (if the playbook didn't set up a systemd service)
+   # or check the running service logs in /var/log/syslog
+   ```
+
+### B. **Manual Setup** (Key Steps)
+
+If you prefer not to use Ansible:
+
+1. **Install** packages:
+   ```bash
+   sudo apt update
+   sudo apt install gpsd gpsd-clients chrony linuxptp
+   ```
+2. **Configure `gpsd`:**
+   - In `/etc/default/gpsd`, set:
+     ```bash
+     START_DAEMON="true"
+     GPSD_OPTIONS="-n"   # or other relevant flags
+     DEVICES="/dev/ttyAMA0"  # or whichever serial device is used
+     ```
+   - Then: `sudo systemctl enable gpsd && sudo systemctl start gpsd`
+3. **Configure `chrony`:**
+   - In `/etc/chrony/chrony.conf` (or a separate conf in `/etc/chrony/conf.d`):
+     ```bash
+     # Use the shared memory refclock for gpsd
+     refclock SHM 0 refid GPS precision 1e-1 offset 0.0 delay 0.2
+     # (some prefer an NMEA driver or direct PPS, see chrony docs)
+     
+     allow 192.168.1.0/24
+     
+     # local stratum
+     local stratum 10
+     
+     # Hardware timestamp (if you want Chrony to read from hardware clock):
+     hwtimestamp eth0
+     ```
+   - Then: `sudo systemctl restart chrony`
+4. **Configure PTP** to be Grandmaster:
+   - The simplest test is:
+     ```bash
+     sudo ptp4l -i eth0 --masterOnly 1 -m
+     ```
+   - For a permanent service, create a systemd unit or place a config in `/etc/linuxptp/ptp4l.conf`.  
+
+---
+
+## 6. Confirm PTP Grandmaster Operation
+
+1. **Check Chrony**:
+   ```bash
+   chronyc sources -v
+   chronyc tracking
+   ```
+   - You should see a source named `GPS` or `SHM`. The system clock should be in sync with GPS time.  
+2. **Check `ptp4l`**:
+   - If you run `ptp4l` in the foreground with `-m`, it will log messages like `MASTER CLOCK_SELECTED` if no better clock is on the LAN.  
+   - Another device on the LAN can run `ptp4l` in `--slaveOnly 1` mode or use `phc2sys` to confirm it sees your Pi as the Grandmaster.
+3. **Optional**: `ethtool -T eth0` to see capabilities:
+   ```bash
+   Time stamping parameters for eth0:
+     Capabilities:
+       hardware-transmit
+       hardware-receive
+       hardware-raw-clock
+     ...
+   ```
+4. **gpsmon** or `cgps -s` to watch GPS data.  
+
+---
+
+## 7. Adjust as Needed
+
+- If your local network switch is PTP‐aware (supporting boundary or transparent clock), you might configure it accordingly. Otherwise, standard Ethernet still works fine.  
+- To serve NTP to the entire LAN, just ensure Chrony is `allow`ing your subnet.  
+- For better holdover (if GPS drops out), consider a board with an OCXO or a stable oscillator. But the Uputronics board plus Pi 5 should suffice for most use cases.
+
+---
+
+## 8. Verifying Sync on Clients
+
+- **NTP Clients**: Just set them to use your Pi’s IP or hostname. E.g. `ntpdate -q <pi-ip>` or in `/etc/ntp.conf` add `server <pi-ip>`.  
+- **PTP Clients**:
+  1. Install `linuxptp` or `ptpd` on a client machine,  
+  2. Run `sudo ptp4l -i eth0 -m` (with `--slaveOnly 1`) to see if it syncs to the Pi,  
+  3. Check the offset values in the log.  
+
+---
+
+## Summary
+
+1. **Attach the Uputronics GPS/RTC HAT** to the Pi 5, connect an antenna for strong GPS signals.  
+2. **Enable PPS + GPS** in `/boot/config.txt` or let the **Time Pi Ansible** roles do it automatically.  
+3. **Install and configure** `gpsd`, `chrony`, `linuxptp`, ensuring your Pi locks its system clock to GPS, then announces itself as PTP Grandmaster.  
+4. **Verify** time sync from your LAN devices using NTP or PTP client tools.
+
+This yields a robust, relatively inexpensive **Stratum 1 time server** with sub-microsecond synchronization on your LAN—perfect for pro audio setups, robotics, broadcast, or just tinkering with hyper-accurate time!
+
+
+**Short Answer**  
+Likely **no**—with a good antenna and clear sky view (especially over the Baltic Sea), you will rarely lose GPS. Occasional brief dropouts can happen due to atmospheric conditions or temporary obstructions, but if your antenna has an unobstructed 360° horizon, your Pi’s GPS receiver will almost always maintain lock.
+
+Below are more details about typical GPS outage risks and why yours should be minimal:
+
+---
+
+## 1. GPS Outages Are Rare in Clear Sky
+
+If your antenna is on an island, away from tall buildings or mountains, you should have *excellent* satellite visibility. GPS (and other GNSS constellations, if your module supports them—like Galileo, GLONASS, BeiDou) typically need at least 4+ satellites in view to fix position/time. With **nothing obstructing the horizon**, you may see 10–15+ satellites at once.
+
+**Potential Causes of Loss of GPS Lock**:
+
+1. **Severe Ionospheric Disturbances**  
+   - During intense solar activity (e.g. big solar flares), satellite signals can degrade. Usually these disruptions are brief or partial, not complete losses.
+2. **Jamming or Interference**  
+   - A local RF jammer or strong transmitter near the same frequency can disrupt GPS. (Rare in open sea.)
+3. **Hardware Fault** or Water Ingress  
+   - If your antenna or cable is damaged or flooded by weather, signal quality might drop. 
+
+**Normal day‐to‐day usage** in your location should see *very stable GPS fixes*, especially with a good receiver and antenna.
+
+---
+
+## 2. Handling Brief Dropouts
+
+Even if your Pi’s receiver does lose signal for a minute or two due to some freak occurrence, your Pi’s system clock will keep ticking. The built‐in crystal has a typical drift of maybe a few parts per million. Over 60 seconds, that’s only tens of microseconds of drift—still good for short intervals.
+
+- If you do not need sub‐microsecond accuracy *during* a rare GPS dropout, you can just wait for re-lock. 
+- The Pi clock re-synchronizes quickly once GPS returns.
+
+---
+
+## 3. Do You Need a Better Oscillator?
+
+**Probably not**, unless:
+
+- You require sub‐microsecond accuracy *continuously*, even if you lose GPS for *hours/days*.  
+- You are in a high-threat environment for GPS jamming.  
+
+For typical “stratum 1 time server” usage—especially on an island with a strong sky view—your Pi + the standard crystal is fine. The GPS remains locked almost continuously, so the system clock is always corrected.
+
+---
+
+## 4. Summing Up
+
+- **In your environment (an island with unobstructed horizon):** You’ll almost certainly enjoy stable, continuous GPS reception.  
+- **Minimal risk of outages**—only short or rare phenomena might cause partial disruptions.  
+- **No special oscillator is needed** if a short drift is acceptable during an occasional minute‐scale outage.  
+
+Thus, you can confidently run your Pi 5 + Uputronics HAT + decent antenna with minimal concern about GPS dropouts. It should reliably serve accurate time over NTP and PTP.
+
+
 # Final Audio/Video Sync Proposals
 Here is a succinct comparison of the two main approaches—(A) **Local Pi generating LTC + local NTP** vs. (B) **Both Pi and Milestone just syncing to a common public NTP server**—and the impacts on audio and video synchronization. We will look at how each method influences (1) the Zoom’s eight-channel audio alignment and (2) the Zoom-audio–to–Milestone-video sync.
+
 
 ---
 
