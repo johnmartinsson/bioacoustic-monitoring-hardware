@@ -1,4 +1,4 @@
-# Goal: Setup a Grandmaster Clock Serving Time over PTP and NTP
+# Grandmaster Clock Serving Time over PTP and NTP
 
 # Resources
 - [Time Pi](https://www.jeffgeerling.com/blog/2025/diy-ptp-grandmaster-clock-raspberry-pi)
