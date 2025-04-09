@@ -1,7 +1,3 @@
-Below is a Markdown-formatted snippet you can paste into your GitHub repository README or documentation. It shows **chronyc** outputs for both the **NTP Server** (clockpi) and the **NTP Client** (analyticspi), along with brief commentary.
-
----
-
 # NTP Synchronization Results
 
 ## 1. NTP Client: analyticspi
