@@ -137,7 +137,3 @@ This saves the current system time to the RTC, helping preserve time between reb
 - [ ] Verify with `chronyc tracking` and `sources -v`
 - [ ] (Optional) Sync hardware clock with `hwclock --systohc`
 - [ ] (Optional) Comment out public NTP servers for isolated LAN setups
-
----
-
-Let me know if you want a printable PDF version or if you'd like this in a separate Markdown file!
