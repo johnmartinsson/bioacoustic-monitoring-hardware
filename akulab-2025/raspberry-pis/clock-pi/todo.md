@@ -1,4 +1,0 @@
-- [ ] Setup NTP server
-- [ ] Verify NTP server
-- [ ] Setup health script
-- [ ] Make sure GPS works after boot without running "cgps -s"
