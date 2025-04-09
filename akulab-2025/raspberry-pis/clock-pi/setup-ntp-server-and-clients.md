@@ -327,28 +327,108 @@ sudo systemctl restart gpsd
 
 ## 15. Configure Chrony (`/etc/chrony/chrony.conf`)
 
-The example:
+I used this config, basically a commented version of [this config](https://github.com/tiagofreire-pt/rpi_uputronics_stratum1_chrony/blob/main/steps/setup_the_server.md#setup-chrony-as-the-service-for-the-ntp-server).
 
 ```
-# Basic pool of NTP servers from internet (could remove if air-gapped)
-pool 0.pool.ntp.org iburst minpoll 5 ...
+#===================================================================
+# Welcome to the chrony configuration file.
+# See chrony.conf(5) for more information about directives.
+#===================================================================
 
-# Logging
+# Load extra config files (ending in .conf) from /etc/chrony/conf.d
+confdir /etc/chrony/conf.d
+
+# ----- Pool of Public NTP Servers -----
+# Poll interval fixed at 32 seconds, ignoring slow/fast logic.
+# Use min/max delay to reject outlier measurements above 30ms or
+# 2× the stdev from the minimal delay.
+# ‘maxsources 6’ means up to 6 IP addresses can be used.
+pool 0.pool.ntp.org iburst minpoll 5 maxpoll 5 polltarget 16 maxdelay 0.030 maxdelaydevratio 2 maxsources 6
+pool 1.pool.ntp.org iburst minpoll 5 maxpoll 5 polltarget 16 maxdelay 0.030 maxdelaydevratio 2 maxsources 6
+
+# If you want this Pi to be fully offline/air-gapped, you can disable
+# the chronyc command port by uncommenting:
+#cmdport 0
+
+# Load NTP sources (server/pool/peer lines) from .sources files in /etc/chrony/sources.d
+sourcedir /etc/chrony/sources.d
+
+# Key file for symmetric NTP authentication
+keyfile /etc/chrony/chrony.keys
+
+# Save clock drift compensation here
+driftfile /var/lib/chrony/chrony.drift
+
+# Save NTS cookies here (for secure time using NTS)
+ntsdumpdir /var/lib/chrony
+
+# (Optional) Server certificate and key lines for NTS would go here, commented out
+#ntsserverkey /etc/pki/tls/private/foo.example.net.key
+#ntsservercert /etc/pki/tls/certs/foo.example.net.crt
+#ntsratelimit interval 3 burst 1 leak 2
+
+# Enable more detailed logging
+#log tracking measurements statistics 
 log rawmeasurements measurements statistics tracking refclocks tempcomp
+
+# Put chrony logs in /var/log/chrony
 logdir /var/log/chrony
+
+# Lock chronyd’s memory to avoid being swapped out
 lock_all
 
-...
+# Don’t let uncertain measurements drastically skew our system clock
+maxupdateskew 100.0
 
-# hwtimestamp * => enable hardware timestamping
+# On startup, if time offset is over 1 second, step immediately,
+# else slew. We'll check these fallback servers: time.facebook.com, time.google.com
+initstepslew 1 time.facebook.com time.google.com
+
+# Rate-limit NTP responses to misbehaving clients:
+# up to 1 response/second, bursting 16, plus partial random leak
+ratelimit interval 1 burst 16 leak 2
+
+# Allocate up to 10,000,000 bytes for client logs and interleaved state
+clientloglimit 10000000
+
+# Enable kernel synchronization (11-minute mode) of the RTC on Linux
+rtcsync
+
+# In the first 3 updates, if offset > 1s, chrony can step the clock
+makestep 1 3
+
+# Use system time zone database for leap second info
+leapsectz right/UTC
+
+# Allow any IP to use this Pi as an NTP server (comment out for isolated)
+allow
+
+# Use DSCP=48 for NTP packets (Expedited Forwarding / QoS)
+dscp 48
+
+# Enable hardware timestamping for all interfaces if supported
 hwtimestamp *
 
-# NMEA source from gpsd (shared memory, SHM 0)
+# ------------------------------------------------------------------
+# GPS + PPS input: references for ultra-precise time
+# ------------------------------------------------------------------
+
+# Shared Memory #0 from gpsd: label as "GPS"
+# poll=2^8=256s, approximate offset/delay to handle overhead
+# noselect => don't fully trust it alone for final time
 refclock SHM 0 poll 8 refid GPS precision 1e-1 offset 0.090 delay 0.2 noselect
 
-# PPS from SHM 1, and actual /dev/pps0 device
+# Shared Memory #1 from gpsd, labeled "PPS", more precise
+# prefer => strongly prefer if valid
 refclock SHM 1 refid PPS precision 1e-7 prefer
+
+# Direct kernel PPS device (/dev/pps0), locked to "GPS" ref,
+# short poll=16s, precision=0.1 microseconds, also prefer
 refclock PPS /dev/pps0 lock GPS maxlockage 2 poll 4 refid kPPS precision 1e-7 prefer
+
+# If we want temperature compensation (advanced), uncomment this:
+#tempcomp /sys/class/thermal/thermal_zone0/temp 30 /etc/chrony/chrony.tempcomp
+
 ```
 
 - **What it does**  
