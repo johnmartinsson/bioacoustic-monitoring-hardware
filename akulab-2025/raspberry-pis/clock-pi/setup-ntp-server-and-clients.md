@@ -1,4 +1,13 @@
-Below is a [concise breakdown of the **“Setup the server”** guide](https://github.com/tiagofreire-pt/rpi_uputronics_stratum1_chrony) from the repository—focusing on what each command or file edit actually *does*, *why* you might want to do it, and which steps are truly **required** for getting a functioning Stratum‑1 GPS/PPS Chrony NTP server vs. which are purely **optimizations**.  
+# Credit Statement
+Thank you [Tiago Freire](https://github.com/tiagofreire-pt) for the [really nice tutorial on how to setup a Stratum-1 NTP server using an Uputronics GPS HAT and a Raspberry Pi 5](https://github.com/tiagofreire-pt/rpi_uputronics_stratum1_chrony/tree/main).
+
+Also, thank you [Jeff Geerling](https://www.jeffgeerling.com/), for a really helpful [overview of how time is kept on our devices](https://www.jeffgeerling.com/blog/2025/diy-ptp-grandmaster-clock-raspberry-pi). That was really helpful.
+
+# Caution
+Most of the below content has been created together with ChatGPT-o4, so be cautions. I have tried it, and it has worked, but I can give no guaranteees.
+
+Below is my [concise breakdown of the **“Setup the server”** guide](https://github.com/tiagofreire-pt/rpi_uputronics_stratum1_chrony) from the repository—focusing on what each command or file edit actually *does*, *why* you might want to do it, and which steps are truly **required** for getting a functioning Stratum‑1 GPS/PPS Chrony NTP server vs. which are purely **optimizations**.
+
 
 ---
 ## 1. System Update and Package Installation
