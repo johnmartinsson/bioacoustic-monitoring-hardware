@@ -1,16 +1,3 @@
-Absolutely! Here’s a **comprehensive and clean field checklist** you can use on-site to set up and verify your **LAN-based NTP time sync with Clock Pi**.
-
-It includes:
-- Static IP setup
-- Editing `chrony.conf`
-- Restarting services
-- Verifying synchronization
-- Plus optional diagnostics and safety steps
-
-You can paste this into your repo or personal notes directly. It's copy-paste friendly and structured to guide you step by step.
-
----
-
 # ✅ Field Site Setup: NTP Synchronization with Clock Pi
 
 This checklist ensures that **Recording Pi** and **Analytics Pi** are correctly configured to sync their clocks with **Clock Pi (Stratum 1 NTP Server)**.
