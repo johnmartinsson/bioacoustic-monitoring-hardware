@@ -52,6 +52,7 @@
 ### Clock Pi
 - Acts as a **Stratum-1 NTP server**, synchronizing time via GPS.
 - Provides accurate time to the Recording Pi over the local network.
+- ([Could also simply buy a NTP001 from Teltonika.](https://www.dustinhome.se/product/5020038273/ntp001-ntp-server))
 
 ### Recording Pi
 - Records audio files to local storage.
