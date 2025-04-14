@@ -31,35 +31,31 @@ mkdir -p "$LOCAL_RECORDING_DIR"
 
 echo "Recording directory: $LOCAL_RECORDING_DIR"
 echo "Recording duration: $SEGMENT_TIME seconds"
-echo "Sample rate: $SAMPLE_RATE Hz"
 
 # Filenames: e.g., zoom_audio_20250328_130000_0001.wav
-FILENAME_PATTERN="${LOCAL_RECORDING_DIR}/zoom_audio_%Y%m%d_%H%M%S_%04d.wav"
+FILENAME_PATTERN="${LOCAL_RECORDING_DIR}/zoom_audio_%Y%m%d_%H%M%S.wav"
 
 #!/usr/bin/env bash
 
 # Example "improved" ffmpeg command for hour-aligned, 8‑channel, 48 kHz float WAV segments:
 
-ffmpeg -loglevel info \
-    -f alsa \
-    -channels 8 \
-    -sample_rate "${SAMPLE_RATE}" \
-    -acodec pcm_f32le \
-    -i hw:2,0 \
-    \
-    -f segment \
-    -segment_time "${SEGMENT_TIME}" \
-    -segment_atclocktime 1 \
-    -strftime 1 \
-    -segment_format wav \
-    -rf64 always \
-    -reset_timestamps 1 \
-    -write_bext 1 \
-    -metadata creation_time="$(date -u +%Y-%m-%dT%H:%M:%S.%3NZ)" \
-    -metadata coding_history="ZoomF8Pro USB 48000Hz/8ch float" \
-    \
-    "${LOCAL_RECORDING_DIR}/zoom_audio_%Y%m%d_%H%M%S.wav"
-
+arecord -D hw:2,0 \
+        -f FLOAT_LE -c 8 -r 48000 \
+        -t raw \
+    | ffmpeg -loglevel info \
+        -f f32le -ar 48000 -ac 8 -i pipe:0 \
+        -c:a pcm_f32le \
+        -f segment \
+        -segment_time "${SEGMENT_TIME}" \
+        -segment_atclocktime 1 \
+        -strftime 1 \
+        -segment_format wav \
+        -rf64 always \
+        -reset_timestamps 1 \
+        -write_bext 1 \
+        -metadata creation_time="$(date -u +%Y-%m-%dT%H:%M:%S.%3NZ)" \
+        -metadata coding_history="ZoomF8Pro USB 48000Hz/8ch float via arecord pipe" \
+	"${FILENAME_PATTERN}"
 
 echo "Recording process started. Files will be segmented in ${SEGMENT_TIME} second chunks."
 echo "Press Ctrl+C to stop recording."
