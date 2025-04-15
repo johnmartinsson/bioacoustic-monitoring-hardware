@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-CONFIG_FILE="./config.ini"
+CONFIG_FILE="$(dirname "$0")/../config.ini"
 DRY_RUN=true
 
 # Parse args

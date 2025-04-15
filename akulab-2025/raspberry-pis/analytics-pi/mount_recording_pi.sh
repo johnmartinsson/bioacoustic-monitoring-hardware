@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-CONFIG_FILE="./config.ini"
+CONFIG_FILE="$(dirname "$0")/../config.ini"
 
 # Function to read a key from a given section in an INI file
 read_config() {
