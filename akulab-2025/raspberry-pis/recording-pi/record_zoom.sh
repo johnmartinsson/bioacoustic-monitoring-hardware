@@ -33,7 +33,7 @@ echo "Recording directory: $LOCAL_RECORDING_DIR"
 echo "Recording duration: $SEGMENT_TIME seconds"
 
 # Filenames: e.g., zoom_audio_20250328_130000_0001.wav
-FILENAME_PATTERN="${LOCAL_RECORDING_DIR}/zoom_audio_%Y%m%d_%H%M%S.wav"
+FILENAME_PATTERN="${LOCAL_RECORDING_DIR}/zoom_f8_pro_%Y%m%d_%H%M%S_%04d.wav"
 
 #!/usr/bin/env bash
 
