@@ -1,0 +1,8 @@
+/home/analyticspi/logs/mount_watchdog/*.log {
+    daily
+    rotate 14
+    compress
+    missingok
+    notifempty
+}
+

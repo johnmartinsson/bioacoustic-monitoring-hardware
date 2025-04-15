@@ -1,0 +1,7 @@
+/home/analyticspi/logs/backup_recordings/*.log {
+    daily
+    rotate 14
+    compress
+    missingok
+    notifempty
+}

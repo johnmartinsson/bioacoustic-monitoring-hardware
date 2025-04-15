@@ -37,6 +37,7 @@ import configparser
 import argparse
 from pathlib import Path
 from datetime import datetime
+import getpass
 
 ###############################################################################
 # HELPER FUNCTIONS
@@ -52,7 +53,11 @@ def parse_args():
 
 def setup_logging(script_dir: Path) -> None:
     """Configure logging to a file named 'backup_recordings.log' in the script directory."""
-    log_file = script_dir / "backup_recordings.log"
+    user = getpass.getuser()
+    today = datetime.now().strftime("%Y-%m-%d")
+    log_dir = Path(f"/home/{user}/logs/backup_recordings")
+    log_dir.mkdir(parents=True, exist_ok=True)
+    log_file = log_dir / f"{today}_backup_recordings.log"
 
     logging.basicConfig(
         filename=log_file,
@@ -297,7 +302,12 @@ def main():
     ################################################################
     #  Find new “complete” .wav files, skip previously synced
     ################################################################
-    synced_files_log = script_dir / "synced_files.log"
+    user = getpass.getuser()
+    today = datetime.now().strftime("%Y-%m-%d")
+    log_dir = Path(f"/home/{user}/logs/backup_recordings")
+    log_dir.mkdir(parents=True, exist_ok=True)
+
+    synced_files_log = log_dir / f"{today}_synced_files.log"
     synced_files = set()
     if synced_files_log.is_file():
         with open(synced_files_log, "r", encoding="utf-8") as sf:

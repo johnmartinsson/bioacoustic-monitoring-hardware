@@ -14,3 +14,4 @@ journalctl --user -u mount_recording_pi.service -f
 
 mkdir -p ~/.config/systemd/user
 cp systemd-services/*.service ~/.config/systemd/user/
+sudo cp logrotate.d/* /etc/logrotate.d/

@@ -10,6 +10,7 @@ import re
 import os
 import csv
 from datetime import datetime
+import getpass
 
 
 def get_cpu_usage():
@@ -78,8 +79,15 @@ def main():
 
     parser.add_argument("--interface", type=str, default="eth0", help="Network interface (default: eth0)")
     parser.add_argument("--mount-check", nargs="*", default=[], help="Mount paths to check")
-    parser.add_argument("--csv", type=str, default=str(default_csv_path), help="Path to CSV output")
     args = parser.parse_args()
+
+    user = getpass.getuser()
+
+    today = datetime.now().strftime("%Y-%m-%d")
+    log_dir = pathlib.Path(f"/home/{user}/logs/rpi_health_snapshot")
+    log_dir.mkdir(parents=True, exist_ok=True)
+    log_path = log_dir / f"{today}_rpi_health.csv"
+
 
     now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
