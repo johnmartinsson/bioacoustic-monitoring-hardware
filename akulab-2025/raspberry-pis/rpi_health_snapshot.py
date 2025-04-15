@@ -74,9 +74,6 @@ def check_mount(mount_path):
 def main():
     parser = argparse.ArgumentParser(description="Raspberry Pi health snapshot for cron.")
 
-    # Default to same directory as script
-    default_csv_path = pathlib.Path(__file__).resolve().parent / "rpi_health.csv"
-
     parser.add_argument("--interface", type=str, default="eth0", help="Network interface (default: eth0)")
     parser.add_argument("--mount-check", nargs="*", default=[], help="Mount paths to check")
     args = parser.parse_args()
@@ -121,8 +118,8 @@ def main():
     ] + mount_statuses
 
     # Write to CSV
-    write_header = not os.path.exists(args.csv)
-    with open(args.csv, "a", newline="") as f:
+    write_header = not os.path.exists(log_path)
+    with open(log_path, "a", newline="") as f:
         writer = csv.writer(f)
         if write_header:
             writer.writerow(header)
