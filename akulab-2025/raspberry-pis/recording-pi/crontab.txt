@@ -1,0 +1,2 @@
+*/10 * * * * /usr/bin/python3 /home/recordingpi/Gits/bioacoustic-monitoring-hardware/akulab-2025/raspberry-pis/rpi_health_snapshot.py --mount-check /media/Elements
+*/10 * * * * /usr/bin/python3 /home/recordingpi/Gits/bioacoustic-monitoring-hardware/akulab-2025/raspberry-pis/backup_recordings.py --rpi=recordingpi
