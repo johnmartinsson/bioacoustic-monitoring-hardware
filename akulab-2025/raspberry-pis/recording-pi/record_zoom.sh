@@ -1,5 +1,16 @@
 #!/usr/bin/env bash
 
+# Wait for Zoom F8 Pro to be available as hw:2,0
+echo "🔍 Waiting for Zoom F8 Pro (hw:2,0) to become available..."
+
+while ! arecord -l | grep -q "card 2:.*F8"; do
+  echo "❌ hw:2,0 not found. Retrying in 30 seconds..."
+  sleep 30
+done
+
+echo "✅ Found Zoom F8 Pro. Starting recording..."
+
+
 CONFIG_FILE="$(dirname "$0")/../config.ini"
 
 # Check if config file exists
