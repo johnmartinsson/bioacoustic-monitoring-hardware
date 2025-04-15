@@ -1,0 +1,1 @@
+*/10 * * * * /usr/bin/python3 /home/clockpi/Gits/bioacoustic-monitoring-hardware/akulab-2025/raspberry-pis/rpi_health_snapshot.py >> /home/clockpi/cron.log 2>&1
