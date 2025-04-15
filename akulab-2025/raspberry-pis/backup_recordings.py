@@ -242,9 +242,9 @@ def main():
 
     # Common recording settings (used for determining "complete" threshold)
     # (You can keep them in a [recording] section or adapt as needed.)
-    record_duration = config.getint("recording", "segment_time", fallback=3600)
+    record_duration = config.getint("recordingpi", "segment_time", fallback=3600)
     modification_threshold = record_duration + 60
-    max_local_recording_size_gb = config.getfloat("recording", "max_local_recording_size_gb", fallback=32.0)
+    max_local_recording_size_gb = config.getfloat("recordingpi", "max_local_recording_size_gb", fallback=32.0)
 
     logging.info(f"Running in {rpi_mode} mode.")
     logging.info(f"from_audio_dir = {from_audio_dir}")
