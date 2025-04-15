@@ -18,7 +18,7 @@ RECORDINGPI_MOUNT=$(read_config "analyticspi" "from_audio_dir")
 NAS_MOUNT=$(read_config "analyticspi" "to_audio_dir")
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-LOG_FILE="/home/analyticspi/mount_watchdog.log"
+LOG_FILE="/home/analyticspi/logs/mount_watchdog/$(date +\%F)_mount_watchdog.log"
 
 log() {
   echo "$(date '+%Y-%m-%d %H:%M:%S') - $1" >> "$LOG_FILE"
