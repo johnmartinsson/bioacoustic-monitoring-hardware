@@ -1,0 +1,8 @@
+/home/analyticspi/logs/rpi_health_snapshot/*.csv {
+    daily
+    rotate 30
+    compress
+    missingok
+    notifempty
+}
+

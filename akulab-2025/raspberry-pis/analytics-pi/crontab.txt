@@ -1,3 +1,3 @@
-*/10 * * * * /usr/bin/python3 /home/analyticspi/Gits/bioacoustic-monitoring-hardware/akulab-2025/raspberry-pis/backup_recordings.py --rpi=analyticspi >> /home/analyticspi/cron.log 2>&1
-*/10 * * * * /usr/bin/python3 /home/analyticspi/Gits/bioacoustic-monitoring-hardware/akulab-2025/raspberry-pis/rpi_health_snapshot.py >> /home/analyticspi/cron.log 2>&1
-*/10 * * * * /home/analyticspi/Gits/bioacoustic-monitoring-hardware/akulab-2025/raspberry-pis/analytics-pi/mount_watchdog.sh >> /home/analyticspi/cron.log 2>&1
+*/10 * * * * /usr/bin/python3 /home/analyticspi/Gits/bioacoustic-monitoring-hardware/akulab-2025/raspberry-pis/backup_recordings.py --rpi=analyticspi >> /home/analyticspi/logs/cron/$(date +\%F)_cron.log 2>&1
+*/10 * * * * /usr/bin/python3 /home/analyticspi/Gits/bioacoustic-monitoring-hardware/akulab-2025/raspberry-pis/rpi_health_snapshot.py >> /home/analyticspi/logs/cron/$(date +\%F)_cron.log 2>&1
+*/10 * * * * /home/analyticspi/Gits/bioacoustic-monitoring-hardware/akulab-2025/raspberry-pis/analytics-pi/mount_watchdog.sh >> /home/analyticspi/logs/mount_watchdog/$(date +\%F)_mount_watchdog.log 2>&1
