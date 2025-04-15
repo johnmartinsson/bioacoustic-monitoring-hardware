@@ -261,7 +261,7 @@ def main():
     ################################################################
     if rpi_mode == "recordingpi":
         # 1) Run SMART check on /dev/sda
-        run_smart_check(device_path="/dev/sda")
+        #run_smart_check(device_path="/dev/sda")
 
         # 2) Verify local USB is mounted
         if not check_mount_or_log(to_audio_dir, label="USB backup directory"):

@@ -1,0 +1,13 @@
+[Unit]
+Description=Mount Recording Pi audio directory via SSHFS
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+ExecStart=/home/analyticspi/Gits/bioacoustic-monitoring-hardware/akulab-2025/raspberry-pis/analytics-pi/mount_recording_pi.sh
+Restart=on-failure
+RestartSec=10
+
+[Install]
+WantedBy=default.target
+

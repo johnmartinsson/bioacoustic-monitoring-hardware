@@ -1,0 +1,17 @@
+[Unit]
+Description=Start Zoom F8 Pro Audio Recording
+After=network.target sound.target
+Wants=sound.target
+
+[Service]
+ExecStart=/home/recordingpi/Gits/bioacoustic-monitoring-hardware/akulab-2025/raspberry-pis/recording-pi/record_zoom.sh
+WorkingDirectory=/home/recordingpi/Gits/bioacoustic-monitoring-hardware/akulab-2025/raspberry-pis/recording-pi
+User=recordingpi
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
+

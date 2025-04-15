@@ -1,0 +1,15 @@
+[Unit]
+Description=Mount NAS via NFS using user-space script
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+ExecStart=/home/analyticspi/Gits/bioacoustic-monitoring-hardware/akulab-2025/raspberry-pis/analytics-pi/mount_nas.sh
+Restart=on-failure
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=default.target
+
