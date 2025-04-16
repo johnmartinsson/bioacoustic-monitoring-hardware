@@ -21,7 +21,8 @@ def get_memory_usage():
 
 def get_temperature():
     try:
-        output = subprocess.run(['vcgencmd', 'measure_temp'], capture_output=True, text=True, check=True)
+        output = subprocess.run(['vcgencmd', 'measure_temp'],
+                                capture_output=True, text=True, check=True)
         temp_str = output.stdout.strip()
         match = re.search(r'temp=(\d+\.\d+)', temp_str)
         return float(match.group(1)) if match else None
@@ -30,7 +31,8 @@ def get_temperature():
 
 def get_voltage():
     try:
-        output = subprocess.run(['vcgencmd', 'measure_volts', 'core'], capture_output=True, text=True, check=True)
+        output = subprocess.run(['vcgencmd', 'measure_volts', 'core'],
+                                capture_output=True, text=True, check=True)
         volts_str = output.stdout.strip()
         match = re.search(r'volt=(\d+\.\d+)', volts_str)
         return float(match.group(1)) if match else None
@@ -60,7 +62,7 @@ def check_mount(mount_path):
 def get_cpu_freq():
     try:
         with open("/sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq") as f:
-            return int(f.read()) / 1000  # MHz
+            return int(f.read()) / 1000.0  # MHz
     except:
         return None
 
@@ -73,7 +75,24 @@ def get_throttled_flags():
         return None
 
 def is_root_fs_readonly():
-    return not os.access("/", os.W_OK)
+    """
+    Check /proc/mounts for an 'rw' entry on the root filesystem.
+    Return True if root is read-only, False if it's read-write.
+    """
+    try:
+        with open("/proc/mounts", "r") as f:
+            for line in f:
+                parts = line.split()
+                # parts[1] is the mount point, parts[3] is the mount flags
+                if len(parts) >= 4 and parts[1] == "/":
+                    # E.g. 'rw,noatime'
+                    flags = parts[3].split(",")
+                    return ("rw" not in flags)
+        # If we never found root in /proc/mounts, be conservative:
+        return True
+    except:
+        # If there's an error reading /proc/mounts, fallback to True:
+        return True
 
 def main():
     parser = argparse.ArgumentParser(description="Raspberry Pi health snapshot for cron.")
