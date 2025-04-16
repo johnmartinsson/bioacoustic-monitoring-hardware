@@ -19,6 +19,7 @@ A single script to handle audio backup in two modes:
     - Includes:
         * Verification that from_audio_dir and to_audio_dir are mounted
         * rsync of complete .wav files
+        * Optionally, sha256 verification if configured (verify_sha256 = true)
         * Skips SMART checks and local file-removal routine
 
 General Steps in Both Modes:
@@ -35,9 +36,10 @@ import subprocess
 import logging
 import configparser
 import argparse
+import getpass
+import hashlib  # <-- NEW
 from pathlib import Path
 from datetime import datetime
-import getpass
 
 ###############################################################################
 # HELPER FUNCTIONS
@@ -193,6 +195,7 @@ def run_rsync_list(from_dir: str, to_dir: str, file_list: list, script_dir: Path
 
 def get_directory_size_gb(dir_path: str) -> float:
     """Return total size of all files under dir_path, in gigabytes."""
+    from pathlib import Path
     total_bytes = 0
     p = Path(dir_path).resolve()
     if not p.is_dir():
@@ -229,6 +232,47 @@ def remove_oldest_files(dir_path: str, max_size_gb: float):
 
 
 ###############################################################################
+# NEW HELPERS FOR SHA256 VERIFICATION
+###############################################################################
+
+def compute_local_sha256(filepath):
+    """
+    Compute the sha256 of a local file (e.g., on the NFS mount).
+    Return hex digest as string, or None if error.
+    """
+    sha = hashlib.sha256()
+    try:
+        with open(filepath, "rb") as f:
+            for chunk in iter(lambda: f.read(65536), b""):
+                sha.update(chunk)
+        return sha.hexdigest()
+    except Exception as e:
+        logging.warning(f"compute_local_sha256 failed for {filepath}: {e}")
+        return None
+
+def compute_remote_sha256(host, remote_filepath, user):
+    """
+    Use SSH to compute the sha256 of a file on the Recording Pi local disk.
+    e.g. host=192.168.1.79, user=recordingpi
+    Return hex digest (string) or None if error.
+    """
+    cmd = [
+        "ssh",
+        f"{user}@{host}",
+        f"sha256sum \"{remote_filepath}\""
+    ]
+    try:
+        result = subprocess.run(cmd, capture_output=True, text=True, check=True)
+        # e.g. "5ab253...somehash  /home/recordingpi/akulab_2025/audio_test_0415/foo.wav"
+        line = result.stdout.strip()
+        remote_hash = line.split()[0].lower()  # everything before first space
+        return remote_hash
+    except Exception as e:
+        logging.warning(f"Failed to get remote sha256 for {remote_filepath} on {host}: {e}")
+        return None
+
+
+###############################################################################
 # MAIN
 ###############################################################################
 
@@ -246,7 +290,6 @@ def main():
     to_audio_dir   = config[rpi_mode]["to_audio_dir"]
 
     # Common recording settings (used for determining "complete" threshold)
-    # (You can keep them in a [recording] section or adapt as needed.)
     record_duration = config.getint("recordingpi", "segment_time", fallback=3600)
     modification_threshold = record_duration + 60
     max_local_recording_size_gb = config.getfloat("recordingpi", "max_local_recording_size_gb", fallback=32.0)
@@ -265,8 +308,8 @@ def main():
     # MODE-SPECIFIC LOGIC
     ################################################################
     if rpi_mode == "recordingpi":
-        # 1) Run SMART check on /dev/sda
-        #run_smart_check(device_path="/dev/sda")
+        # 1) Run SMART check on /dev/sda (optional)
+        # run_smart_check(device_path="/dev/sda")
 
         # 2) Verify local USB is mounted
         if not check_mount_or_log(to_audio_dir, label="USB backup directory"):
@@ -290,7 +333,6 @@ def main():
     else:
         # analytics pi
         # We expect from_audio_dir and to_audio_dir to be SSHFS and NFS respectively
-        # Check if they're mounted. Optionally try mounting automatically if you want.
         if not check_mount_or_log(from_audio_dir, label="SSHFS from_audio_dir"):
             logging.error("Exiting script because from_audio_dir is not properly mounted on the Analytics Pi.")
             return
@@ -321,18 +363,43 @@ def main():
     for fpath in Path(from_audio_dir).rglob("*.wav"):
         rel_path = str(fpath.relative_to(from_audio_dir))  # store as relative path
         if rel_path in synced_files:
-            # It's already synced, skip
-            continue
+            continue  # already synced
         if is_file_complete(fpath, modification_threshold):
             complete_unsynced_files.append(rel_path)
         else:
-            # Debug info
             logging.info(f"Skipping incomplete or not-yet-stable file: {fpath}")
 
     if not complete_unsynced_files:
         logging.info("No new complete .wav files found to sync at this time.")
     else:
         run_rsync_list(from_audio_dir, to_audio_dir, complete_unsynced_files, script_dir, synced_files_log)
+
+        # NEW: Attempt sha256 verification if rpi_mode == analyticspi and verify_sha256 = true
+        if rpi_mode == "analyticspi" and config.getboolean("analyticspi", "verify_sha256", fallback=False):
+            # read host info from [recordingpi] section
+            recpi_host = config["recordingpi"]["recordingpi_ip"]
+            recpi_user = config["recordingpi"]["recordingpi_user"]
+
+            for relpath in complete_unsynced_files:
+                local_path = os.path.join(to_audio_dir, relpath)    # file on NAS
+                recpi_actual_base = config["recordingpi"]["from_audio_dir"] 
+                # e.g. /home/recordingpi/akulab_2025/audio_test_0415
+
+                recpi_file = os.path.join(recpi_actual_base, relpath)
+                # e.g. /home/recordingpi/akulab_2025/audio_test_0415/zoom_f8_pro_20250416_133000_0016.wav
+
+
+                local_hash = compute_local_sha256(local_path)
+                remote_hash = compute_remote_sha256(recpi_host, recpi_file, recpi_user)
+
+                if not local_hash or not remote_hash:
+                    logging.warning(f"Skipping sha256 compare for {relpath}, missing hash.")
+                    continue
+
+                if local_hash.lower() == remote_hash.lower():
+                    logging.info(f"File {relpath} verified successfully (sha256).")
+                else:
+                    logging.error(f"File {relpath} verification FAILED! local={local_hash}, remote={remote_hash}")
 
     ################################################################
     #  If in recordingpi mode, remove oldest .wav if local size > max
@@ -349,7 +416,6 @@ def main():
                 logging.info("Local recording directory is within allowed size limit.")
         except Exception as e:
             logging.error(f"Error checking or trimming local directory size: {e}")
-
     else:
         # analytics pi => skip removal
         logging.info("Skipping local file-removal routine in analytics pi mode.")
@@ -359,3 +425,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
