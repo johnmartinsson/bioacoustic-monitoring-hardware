@@ -83,16 +83,21 @@ def is_root_fs_readonly():
         with open("/proc/mounts", "r") as f:
             for line in f:
                 parts = line.split()
-                # parts[1] is the mount point, parts[3] is the mount flags
                 if len(parts) >= 4 and parts[1] == "/":
-                    # E.g. 'rw,noatime'
                     flags = parts[3].split(",")
                     return ("rw" not in flags)
-        # If we never found root in /proc/mounts, be conservative:
-        return True
+        return True  # if not found, assume read-only
     except:
-        # If there's an error reading /proc/mounts, fallback to True:
         return True
+
+def check_zoom_hw2():
+    """Check if Zoom F8 Pro is enumerated as hw:2,0 by scanning arecord -l output."""
+    try:
+        result = subprocess.run(["arecord", "-l"], capture_output=True, text=True)
+        # e.g. look for line with 'card 2: F8' or 'card 2: ZoomF8Pro ...'
+        return bool(re.search(r"card 2:.*F8", result.stdout, re.IGNORECASE))
+    except:
+        return False
 
 def main():
     parser = argparse.ArgumentParser(description="Raspberry Pi health snapshot for cron.")
@@ -117,6 +122,7 @@ def main():
     cpu_freq = get_cpu_freq()
     throttled = get_throttled_flags()
     root_ro = is_root_fs_readonly()
+    zoom_hw2_ok = check_zoom_hw2()  # new
 
     mount_statuses = [check_mount(m) for m in args.mount_check]
 
@@ -127,7 +133,8 @@ def main():
         "temperature_c", "voltage_v",
         f"net_sent_kbps_{args.interface}", f"net_recv_kbps_{args.interface}",
         "disk_percent", "disk_free_gb",
-        "cpu_freq_mhz", "throttled_flags", "root_readonly"
+        "cpu_freq_mhz", "throttled_flags", "root_readonly",
+        "zoom_hw2_ok"  # new column
     ] + [f"mount_ok_{p}" for p in args.mount_check]
 
     row = [
@@ -137,7 +144,8 @@ def main():
         temp, volts,
         sent_kbps, recv_kbps,
         disk_percent, disk_free,
-        cpu_freq, throttled, root_ro
+        cpu_freq, throttled, root_ro,
+        zoom_hw2_ok  # new
     ] + mount_statuses
 
     write_header = not os.path.exists(log_path)
