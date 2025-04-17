@@ -11,6 +11,50 @@ import os
 import csv
 from datetime import datetime
 import getpass
+import shlex
+
+# --- NEW helper -----------------------------------------
+def get_chrony_stats():
+    """
+    Returns:
+      current_src  (str)  e.g. 'PPS' or '192.168.1.140'
+      last_offset  (float)  seconds (+/-)
+      rms_offset   (float)  seconds
+      skew         (float)  ppm
+    Any field that can’t be parsed is returned as None.
+    """
+    try:
+        # 1) Which source has the * ?
+        src_cmd = ["chronyc", "sources", "-n"]        # -n → numeric names
+        src_out  = subprocess.run(src_cmd, capture_output=True,
+                                  text=True, check=True).stdout
+        current_src = None
+        for line in src_out.splitlines():
+            # Look for ^*  or #*  in first two chars
+            if re.match(r'^[#^]\*', line):
+                # field 2 is the name/ip
+                current_src = line.split()[1]
+                break
+
+        # 2) Offsets & skew
+        trk_cmd = ["chronyc", "tracking"]
+        trk_txt = subprocess.run(trk_cmd, capture_output=True,
+                                 text=True, check=True).stdout
+
+        def grab(pattern):
+            m = re.search(pattern, trk_txt)
+            return float(m.group(1)) if m else None
+
+        last_offset = grab(r"Last offset\s*:\s*([+-]?\d+\.\d+)")
+        rms_offset  = grab(r"RMS offset\s*:\s*([+-]?\d+\.\d+)")
+        skew        = grab(r"Skew\s*:\s*([+-]?\d+\.\d+)")
+
+        return current_src, last_offset, rms_offset, skew
+
+    except Exception:
+        return None, None, None, None
+# ----------------------------------------------------------
+
 
 def get_cpu_usage():
     return psutil.cpu_percent()
@@ -124,6 +168,7 @@ def main():
     root_ro = is_root_fs_readonly()
     zoom_hw2_ok = check_zoom_hw2()  # new
 
+
     mount_statuses = [check_mount(m) for m in args.mount_check]
 
     header = [
@@ -147,6 +192,12 @@ def main():
         cpu_freq, throttled, root_ro,
         zoom_hw2_ok  # new
     ] + mount_statuses
+
+    chrony_src, chrony_last, chrony_rms, chrony_skew = get_chrony_stats()
+
+    header += ["chrony_src", "chrony_last_offset_s",
+               "chrony_rms_offset_s", "chrony_freq_skew_ppm"]
+    row    += [chrony_src, chrony_last, chrony_rms, chrony_skew]
 
     write_header = not os.path.exists(log_path)
     with open(log_path, "a", newline="") as f:

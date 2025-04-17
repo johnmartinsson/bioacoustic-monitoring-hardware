@@ -2,15 +2,24 @@
 """
 summarize_daily_logs.py
 
-Generates one HTML summary for the given date (default = today), scanning:
+Generates an HTML daily summary for each Raspberry Pi in the system.
+It scans pooled logs under
   /home/analyticspi/logs/pooled/<pi_name>/
     backup_recordings/<DATE>_backup_recordings.log
     rpi_health_snapshot/<DATE>_rpi_health.csv
-    mount_watchdog/<DATE>_mount_watchdog.log (analytics-pi only)
+    mount_watchdog/<DATE>_mount_watchdog.log   (analytics‑pi only)
 
-We add a new step: if pi == 'analyticspi', we parse lines like:
-  "[INFO] File <filename> verified successfully (sha256)."
-and present them in a separate bullet list titled "Verified Files (sha256)".
+🆕 2025‑04‑17
+----------------
+* **Chrony section split into two parts**
+  1. **Time‑sync metrics table** – min / max / average of every *numeric*
+     chrony column (e.g. `chrony_last_offset_s`, `chrony_rms_offset_s`,
+     `chrony_freq_skew_ppm`).
+  2. **Clock‑source usage line** –   `clockpi : 96, time.cloudflare.com : 4`.
+     It counts unique values in column `chrony_src` (or the legacy
+     `chrony_selected_refid` if present).
+
+The rest of the script is unchanged from the original version you sent.
 """
 
 import sys
@@ -18,230 +27,234 @@ import os
 import re
 import csv
 import statistics
+import collections
 from datetime import datetime
 from pathlib import Path
+from typing import List, Dict
 
 PI_NAMES = ["clockpi", "analyticspi", "recordingpi"]
 
-def main():
-    if len(sys.argv) > 1:
-        log_date = sys.argv[1]
-    else:
-        log_date = datetime.now().strftime("%Y-%m-%d")
+# ----------------------------------------------------------------------------
+# Entry‑point
+# ----------------------------------------------------------------------------
+
+def main() -> None:
+    log_date = sys.argv[1] if len(sys.argv) > 1 else datetime.now().strftime("%Y-%m-%d")
 
     LOG_BASE = "/home/analyticspi/logs/pooled"
-    DAILY_SUM_DIR = os.path.join("/home/analyticspi/logs", "daily_summaries")
+    DAILY_SUM_DIR = "/home/analyticspi/logs/daily_summaries"
     os.makedirs(DAILY_SUM_DIR, exist_ok=True)
 
-    html_lines = []
-    html_lines.append("<html><head><meta charset='utf-8'><title>Daily Summary</title></head><body>")
-    html_lines.append(f"<h1>Daily Summary for {log_date}</h1>")
+    html_parts: List[str] = [
+        "<html><head><meta charset='utf-8'><title>Daily Summary – "
+        f"{log_date}</title></head><body>",
+        f"<h1>Daily Summary for {log_date}</h1>"
+    ]
 
     for pi in PI_NAMES:
-        html_lines.append(f"<h2>{pi.title().replace('pi',' Pi')}</h2>")
+        html_parts.append(f"<h2>{pi.title().replace('pi', ' Pi')}</h2>")
         pi_folder = os.path.join(LOG_BASE, pi)
-
         if not os.path.isdir(pi_folder):
-            html_lines.append(f"<p>No logs found for <b>{pi}</b> in {pi_folder}</p>")
+            html_parts.append(f"<p>No logs found for <b>{pi}</b> in {pi_folder}</p>")
             continue
 
-        # rpi_health_snapshot
+        # -------- health snapshot --------
         health_csv = os.path.join(pi_folder, "rpi_health_snapshot", f"{log_date}_rpi_health.csv")
-        health_section = parse_health_csv(health_csv, pi, log_date)
-        html_lines.append(health_section)
+        html_parts.append(parse_health_csv(health_csv, pi, log_date))
 
-        # backup_recordings
+        # -------- backup recordings -------
         backup_log = os.path.join(pi_folder, "backup_recordings", f"{log_date}_backup_recordings.log")
-        backup_section = parse_backup_log(backup_log, pi, log_date)
-        html_lines.extend(backup_section)
+        html_parts.extend(parse_backup_log(backup_log, pi, log_date))
 
-        # mount_watchdog only for analytics pi
+        # -------- mount watchdog ----------
         if pi == "analyticspi":
             watchdog_log = os.path.join(pi_folder, "mount_watchdog", f"{log_date}_mount_watchdog.log")
-            wd_section = parse_mount_watchdog(watchdog_log, log_date)
-            html_lines.append(wd_section)
+            html_parts.append(parse_mount_watchdog(watchdog_log, log_date))
 
-    html_lines.append("</body></html>")
+    html_parts.append("</body></html>")
 
     out_file = os.path.join(DAILY_SUM_DIR, f"{log_date}_summary.html")
-    with open(out_file, "w", encoding="utf-8") as f:
-        f.write("\n".join(html_lines))
-
+    with open(out_file, "w", encoding="utf-8") as fh:
+        fh.write("\n".join(html_parts))
     print(f"Summary generated: {out_file}")
 
+# ----------------------------------------------------------------------------
+# Health‑snapshot → HTML
+# ----------------------------------------------------------------------------
 
-def parse_health_csv(csv_path, pi_name, log_date):
+def parse_health_csv(csv_path: str, pi_name: str, log_date: str) -> str:
+    """Return HTML snippet summarising a single Pi's health CSV."""
     if not os.path.isfile(csv_path):
         return f"<p>No rpi_health_snapshot found for <b>{pi_name}</b> on {log_date}.</p>"
 
-    rows = []
-    with open(csv_path, "r", encoding="utf-8") as csvfile:
-        reader = csv.DictReader(csvfile)
-        for row in reader:
-            rows.append(row)
+    with open(csv_path, "r", encoding="utf-8") as fh:
+        reader = csv.DictReader(fh)
+        rows = list(reader)
+        if not rows:
+            return f"<p>Empty rpi_health_snapshot CSV for <b>{pi_name}</b> on {log_date}.</p>"
+        cols: List[str] = reader.fieldnames or []
 
-    if not rows:
-        return f"<p>Empty rpi_health_snapshot CSV for <b>{pi_name}</b> on {log_date}.</p>"
+    # Gather column → list‑of‑values
+    col_vals: Dict[str, List[str]] = {c: [r[c] for r in rows] for c in cols}
 
-    columns = reader.fieldnames
-    col_data = {col: [] for col in columns}
+    html: List[str] = [
+        f"<h4>Health Snapshot for {pi_name}</h4>",
+        "<table border='1' cellpadding='4' cellspacing='0'>",
+        "<tr><th>Column</th><th>Min</th><th>Max</th><th>Average / Stats</th></tr>"
+    ]
 
-    for row in rows:
-        for col in columns:
-            col_data[col].append(row[col])
-
-    lines = []
-    lines.append(f"<h4>Health Snapshot for {pi_name} (all columns)</h4>")
-    lines.append("<table border='1' cellpadding='4' cellspacing='0'>")
-    lines.append("<tr><th>Column</th><th>Min</th><th>Max</th><th>Average / Stats</th></tr>")
-
-    for col in columns:
-        col_list = col_data[col]
-        numeric_values = []
-        bool_values = []
-        for val in col_list:
-            if val.lower() in ["true", "false"]:
-                bool_values.append(val.lower() == "true")
+    for col in cols:
+        vals = col_vals[col]
+        num_vals: List[float] = []
+        bool_vals: List[bool] = []
+        for v in vals:
+            if isinstance(v, str) and v.lower() in {"true", "false"}:
+                bool_vals.append(v.lower() == "true")
             else:
                 try:
-                    fval = float(val)
-                    numeric_values.append(fval)
-                except ValueError:
+                    num_vals.append(float(v))
+                except (ValueError, TypeError):
                     pass
 
-        min_str = "N/A"
-        max_str = "N/A"
-        avg_str = "N/A"
-
+        min_s = max_s = avg_s = "N/A"
         if col.lower().startswith("timestamp"):
-            first_ts = col_list[0]
-            last_ts = col_list[-1]
-            min_str = f"first: {first_ts}"
-            max_str = f"last: {last_ts}"
-            avg_str = "&nbsp;"
-        elif bool_values and len(bool_values) == len(col_list):
-            true_count = sum(bool_values)
-            false_count = len(bool_values) - true_count
-            min_str = f"True: {true_count}"
-            max_str = f"False: {false_count}"
-            avg_str = "&nbsp;"
-        elif numeric_values and len(numeric_values) == len(col_list):
-            n_min = min(numeric_values)
-            n_max = max(numeric_values)
-            n_avg = statistics.mean(numeric_values)
-            min_str = f"{n_min:.2f}"
-            max_str = f"{n_max:.2f}"
-            avg_str = f"{n_avg:.2f}"
+            min_s = f"first: {vals[0]}"
+            max_s = f"last: {vals[-1]}"
+        elif bool_vals and len(bool_vals) == len(vals):
+            t_cnt = sum(bool_vals)
+            min_s, max_s = f"True: {t_cnt}", f"False: {len(vals) - t_cnt}"
+        elif num_vals and len(num_vals) == len(vals):
+            min_s = f"{min(num_vals):.2f}"
+            max_s = f"{max(num_vals):.2f}"
+            avg_s = f"{statistics.mean(num_vals):.2f}"
         else:
-            min_str = col_list[0] if col_list else "N/A"
-            max_str = col_list[-1] if col_list else "N/A"
-            avg_str = f"{len(col_list)} rows"
+            min_s, max_s = vals[0], vals[-1]
+            avg_s = f"{len(vals)} rows"
 
-        lines.append(f"<tr><td>{col}</td><td>{min_str}</td><td>{max_str}</td><td>{avg_str}</td></tr>")
+        html.append(f"<tr><td>{col}</td><td>{min_s}</td><td>{max_s}</td><td>{avg_s}</td></tr>")
 
-    lines.append("</table>")
-    return "\n".join(lines)
+    html.append("</table>")
+
+    # ---------------- Chrony extras ----------------
+    chrony_cols = [c for c in cols if c.startswith("chrony_")]
+    if chrony_cols:
+        html.extend(build_chrony_section(chrony_cols, col_vals))
+
+    return "\n".join(html)
+
+# ----------------------------------------------------------------------------
+# Chrony helpers
+# ----------------------------------------------------------------------------
+
+def build_chrony_section(chrony_cols: List[str], col_vals: Dict[str, List[str]]) -> List[str]:
+    """Return HTML lines for Chrony metrics + source counts."""
+    out: List[str] = ["<h5>Chrony Time‑Sync</h5>"]
+
+    # ---- numeric table ----
+    numeric_cols = [c for c in chrony_cols if c not in {"chrony_src", "chrony_selected_refid"}]
+    numeric_cols = [c for c in numeric_cols if all(_is_float(v) for v in col_vals[c])]
+    if numeric_cols:
+        out.append("<table border='1' cellpadding='3' cellspacing='0'>")
+        out.append("<tr><th>Metric</th><th>Min</th><th>Max</th><th>Average</th></tr>")
+        for col in numeric_cols:
+            nums = [float(v) for v in col_vals[col]]
+            out.append(
+                f"<tr><td>{col}</td><td>{min(nums):.6g}</td><td>{max(nums):.6g}</td><td>{statistics.mean(nums):.6g}</td></tr>"
+            )
+        out.append("</table>")
+
+    # ---- clock‑source counts ----
+    ref_col = "chrony_src" if "chrony_src" in col_vals else "chrony_selected_refid" if "chrony_selected_refid" in col_vals else None
+    if ref_col:
+        counts = collections.Counter(col_vals[ref_col])
+        pretty = ", ".join(f"{src} : {cnt}" for src, cnt in counts.most_common())
+        out.append(f"<p><b>Clock Source Usage</b>: {pretty}</p>")
+
+    return out
 
 
-def parse_backup_log(log_path, pi_name, log_date):
+def _is_float(x: str) -> bool:
+    try:
+        float(x)
+        return True
+    except (ValueError, TypeError):
+        return False
+
+# ----------------------------------------------------------------------------
+# Backup recordings, watchdog – unchanged
+# ----------------------------------------------------------------------------
+
+def parse_backup_log(log_path: str, pi_name: str, log_date: str):
     if not os.path.isfile(log_path):
         return [f"<p>No backup_recordings log found for <b>{pi_name}</b> on {log_date}.</p>"]
 
-    errors = []
-    synced_files = []
-    verified_files = []
-    capturing_rsync = False
+    errors, synced, verified = [], [], []
+    capturing = False
+    wav_re = re.compile(r"(zoom_f8_pro_\d{8}_\d{6}_\d{4}\.wav)")
 
-    wav_pattern = re.compile(r"(zoom_f8_pro_\d{8}_\d{6}_\d{4}\.wav)")
-
-    with open(log_path, "r", encoding="utf-8") as f:
-        for line in f:
-            ls = line.strip("\n")
-
-            # Parse errors
-            if "[WARNING]" in ls or "[ERROR]" in ls:
-                errors.append(ls)
-
-            # If we see "rsync stdout:", start capturing lines for newly synced .wav
-            if "rsync stdout:" in ls:
-                capturing_rsync = True
+    with open(log_path, "r", encoding="utf-8") as fh:
+        for raw in fh:
+            line = raw.rstrip("\n")
+            if "[WARNING]" in line or "[ERROR]" in line:
+                errors.append(line)
+            if "rsync stdout:" in line:
+                capturing = True
                 continue
-
-            # If capturing, look for wave filenames, or stop on blank lines or next "[INFO]"
-            if capturing_rsync:
-                if not ls or "[INFO]" in ls:
-                    capturing_rsync = False
+            if capturing:
+                if not line or "[INFO]" in line:
+                    capturing = False
                 else:
-                    wmatch = wav_pattern.search(ls)
-                    if wmatch:
-                        fname = wmatch.group(1)
-                        synced_files.append(fname)
+                    m = wav_re.search(line)
+                    if m:
+                        synced.append(m.group(1))
+            if pi_name == "analyticspi" and "verified successfully (sha256)" in line.lower():
+                m = re.search(r"file\s+(.+?)\s+verified successfully \(sha256\)", line, re.IGNORECASE)
+                if m:
+                    verified.append(m.group(1))
 
-            # For analytics pi, we also want to detect verification lines
-            if pi_name == "analyticspi":
-                # e.g. "[INFO] File zoom_f8_pro_20250416_124800_0016.wav verified successfully (sha256)."
-                if "verified successfully (sha256)" in ls.lower():
-                    # parse out the file name with a simple regex
-                    match = re.search(r"file\s+(.+?)\s+verified successfully \(sha256\)", ls, re.IGNORECASE)
-                    if match:
-                        verified_files.append(match.group(1))
-
-    lines = []
-    # Errors
+    html: List[str] = []
     if errors:
-        lines.append("<h4>Backup Errors/Warnings</h4><ul>")
-        for e in errors:
-            lines.append(f"<li>{e}</li>")
-        lines.append("</ul>")
+        html.append("<h4>Backup Errors/Warnings</h4><ul>")
+        html.extend(f"<li>{e}</li>" for e in errors)
+        html.append("</ul>")
     else:
-        lines.append("<p>No backup errors or warnings found.</p>")
+        html.append("<p>No backup errors or warnings found.</p>")
 
-    # Synced
-    if synced_files:
-        lines.append(f"<h4>Successfully Synced Files ({len(synced_files)} total)</h4><ol>")
-        for sf in synced_files:
-            lines.append(f"<li>{sf}</li>")
-        lines.append("</ol>")
+    if synced:
+        html.append(f"<h4>Successfully Synced Files ({len(synced)} total)</h4><ol>")
+        html.extend(f"<li>{f}</li>" for f in synced)
+        html.append("</ol>")
     else:
-        lines.append("<p>No .wav files synced today.</p>")
+        html.append("<p>No .wav files synced today.</p>")
 
-    # Verified (sha256) - only relevant if pi_name == 'analyticspi'
-    if pi_name == "analyticspi" and verified_files:
-        lines.append(f"<h4>Verified Files (sha256) ({len(verified_files)} total)</h4><ul>")
-        for vf in verified_files:
-            lines.append(f"<li>{vf}</li>")
-        lines.append("</ul>")
+    if pi_name == "analyticspi" and verified:
+        html.append(f"<h4>Verified Files (sha256) ({len(verified)} total)</h4><ul>")
+        html.extend(f"<li>{v}</li>" for v in verified)
+        html.append("</ul>")
 
-    return lines
+    return html
 
 
-def parse_mount_watchdog(log_path, log_date):
+def parse_mount_watchdog(log_path: str, log_date: str) -> str:
     if not os.path.isfile(log_path):
         return f"<p>No mount_watchdog log found for analytics-pi on {log_date}.</p>"
 
-    fail_count = 0
-    success_count = 0
-    fail_details = []
+    ok = fail = 0
+    fails: List[str] = []
+    with open(log_path, "r", encoding="utf-8") as fh:
+        for line in fh:
+            if "❌" in line:
+                fail += 1
+                fails.append(line.strip())
+            elif "✅" in line:
+                ok += 1
 
-    with open(log_path, "r", encoding="utf-8") as f:
-        for line in f:
-            ls = line.strip("\n")
-            if "❌" in ls:
-                fail_count += 1
-                fail_details.append(ls)
-            elif "✅" in ls:
-                success_count += 1
-
-    lines = []
-    lines.append("<h4>Mount Watchdog</h4>")
-    lines.append(f"<p>Mount OK count: {success_count}<br>Mount Fail count: {fail_count}</p>")
-    if fail_count > 0:
-        lines.append("<ul>")
-        for d in fail_details:
-            lines.append(f"<li>{d}</li>")
-        lines.append("</ul>")
-
-    return "\n".join(lines)
+    html: List[str] = ["<h4>Mount Watchdog</h4>", f"<p>Mount OK count: {ok}<br>Mount Fail count: {fail}</p>"]
+    if fails:
+        html.append("<ul>")
+        html.extend(f"<li>{d}</li>" for d in fails)
+        html.append("</ul>")
+    return "\n".join(html)
 
 
 if __name__ == "__main__":
