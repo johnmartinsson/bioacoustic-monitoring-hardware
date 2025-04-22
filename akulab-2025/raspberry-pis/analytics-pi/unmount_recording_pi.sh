@@ -14,7 +14,7 @@ read_config() {
 }
 
 # Read the local mount path from the analyticspi section
-LOCAL_MOUNT=$(read_config "analyticspi" "from_audio_dir")
+LOCAL_MOUNT=$(read_config "analyticspi" "to_audio_dir")
 
 echo "Attempting to unmount $LOCAL_MOUNT..."
 
