@@ -1,75 +1,76 @@
 #!/usr/bin/env bash
+#
+# record_zoom.sh  –  Zoom F8 Pro 8‑ch float ⟶ FFmpeg segmenter
+#
 
-# Wait for Zoom F8 Pro to be available as hw:2,0
-echo "🔍 Waiting for Zoom F8 Pro (hw:2,0) to become available..."
+set -euo pipefail
 
+# ───────────────────────── 1.  Wait for audio interface ─────────────────────────
+echo "🔍 Waiting for Zoom F8 Pro (hw:2,0) to become available…"
 while ! arecord -l | grep -q "card 2:.*F8"; do
-  echo "❌ hw:2,0 not found. Retrying in 30 seconds..."
+  echo "❌ hw:2,0 not found. Retrying in 30 s…"
   sleep 30
 done
+echo "✅ Found Zoom F8 Pro."
 
-echo "✅ Found Zoom F8 Pro. Starting recording..."
-
-
+# ───────────────────────── 2.  Read settings from config.ini ────────────────────
 CONFIG_FILE="$(dirname "$0")/../config.ini"
 
-# Check if config file exists
-if [ ! -f "$CONFIG_FILE" ]; then
-  echo "❌ Config file not found: $CONFIG_FILE"
-  exit 1
-fi
-
-# Function to read a key from a given section
-read_config() {
-  local section="$1"
-  local key="$2"
-  awk -F= -v section="$section" -v key="$key" '
-    $0 ~ "\\[" section "\\]" { in_section=1; next }
-    in_section && $1 ~ key { gsub(/^[ \t]+|[ \t]+$/, "", $2); print $2; exit }
-    $0 ~ /^\[/ { in_section=0 }
+read_config () {
+  local section=$1 key=$2
+  awk -F= -v s="\\[$section\\]" -v k="$key" '
+    $0 ~ s          {inside=1; next}
+    inside && $1 ~ k{gsub(/^[ \t]+|[ \t]+$/, "", $2); print $2; exit}
+    /^\[/           {inside=0}
   ' "$CONFIG_FILE"
 }
 
-# Read configuration values from [recordingpi]
-LOCAL_RECORDING_DIR=$(read_config "recordingpi" "to_audio_dir")
-SEGMENT_TIME=$(read_config "recordingpi" "segment_time")
-SAMPLE_RATE=$(read_config "recordingpi" "sample_rate")
+LOCAL_RECORDING_DIR=$(read_config recordingpi to_audio_dir)
+SEGMENT_TIME=$(read_config recordingpi segment_time)
+SAMPLE_RATE=$(read_config recordingpi sample_rate)
 
-# Use defaults if needed
-SEGMENT_TIME="${SEGMENT_TIME:-3600}"
-SAMPLE_RATE="${SAMPLE_RATE:-48000}"
+SEGMENT_TIME=${SEGMENT_TIME:-3600}
+SAMPLE_RATE=${SAMPLE_RATE:-48000}
 
-# Ensure the recording directory exists
-mkdir -p "$LOCAL_RECORDING_DIR"
+# ───────────────────────── 3.  Wait for USB‑HDD mount ───────────────────────────
+USB_MOUNT_DIR=$(dirname "$(readlink -f "$LOCAL_RECORDING_DIR")")  # /home/…/usb_hdd
+echo "🔍 Waiting for USB HDD mount at $USB_MOUNT_DIR …"
 
-echo "Recording directory: $LOCAL_RECORDING_DIR"
-echo "Segment time: ${SEGMENT_TIME}s"
-echo "Sample rate: ${SAMPLE_RATE}Hz"
+mount_ready () { mountpoint -q "$1"; }
 
-# Filename pattern
+until mount_ready "$USB_MOUNT_DIR"; do
+  echo "❌ Drive not mounted yet. Retrying in 20 s…"
+  sleep 20
+done
+echo "✅ USB HDD is mounted."
+
+mkdir -p   "$LOCAL_RECORDING_DIR"
+echo "Recording directory : $LOCAL_RECORDING_DIR"
+echo "Segment time        : ${SEGMENT_TIME}s"
+echo "Sample rate         : ${SAMPLE_RATE} Hz"
+
+# ───────────────────────── 4.  Launch capture pipeline ──────────────────────────
 FILENAME_PATTERN="${LOCAL_RECORDING_DIR}/zoom_f8_pro_%Y%m%d_%H%M%S_%04d.wav"
 
-export ALSA_PCM_DEBUG=0
-# Start recording via arecord pipe into ffmpeg
-arecord -D hw:2,0 \
+export ALSA_PCM_DEBUG=0          # set to 1 if you want kernel ring‑buffer stats
+
+arecord -D hw:2,0           \
         -f FLOAT_LE -c 8 -r "$SAMPLE_RATE" \
-        -t raw \
-	-B 5000000  -F 1000000  -v \
-    | ffmpeg -loglevel info \
+        -t raw              \
+        -B 5000000 -F 1000000 -v |
+ffmpeg  -loglevel info \
         -f f32le -ar "$SAMPLE_RATE" -ac 8 -i pipe:0 \
-        -c:a pcm_f32le \
-        -f segment \
+        -c:a pcm_f32le       \
+        -f segment           \
         -segment_time "$SEGMENT_TIME" \
         -segment_atclocktime 1 \
-        -strftime 1 \
-        -segment_format wav \
-        -rf64 always \
-        -reset_timestamps 1 \
-        -write_bext 1 \
+        -strftime 1          \
+        -segment_format wav  \
+        -rf64 always         \
+        -reset_timestamps 1  \
+        -write_bext 1        \
         -metadata creation_time="$(date -u +%Y-%m-%dT%H:%M:%S.%3NZ)" \
         -metadata coding_history="ZoomF8Pro USB ${SAMPLE_RATE}Hz/8ch float via arecord pipe" \
         "$FILENAME_PATTERN"
 
-echo "Recording process started. Files will be segmented in ${SEGMENT_TIME} second chunks."
-echo "Press Ctrl+C to stop recording."
-
+echo "🎙  Recording started — files will roll every ${SEGMENT_TIME}s."

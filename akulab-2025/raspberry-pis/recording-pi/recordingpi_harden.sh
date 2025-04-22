@@ -13,12 +13,12 @@ systemctl mask  apt-daily.service apt-daily-upgrade.service man-db.service \
                 e2scrub_all.service
 
 # 2. Remove swap – avoids SD wear during long recordings
-dphys-swapfile swapoff || true
-dphys-swapfile uninstall || true
-systemctl disable dphys-swapfile.service || true
-update-rc.d dphys-swapfile remove || true
-sed -i 's/CONF_SWAPSIZE=.*/CONF_SWAPSIZE=0/' /etc/dphys-swapfile || true
-sed -i 's/rootfstype=ext4/rootfstype=ext4 noswap/' /boot/firmware/cmdline.txt || true
+#dphys-swapfile swapoff || true
+#dphys-swapfile uninstall || true
+#systemctl disable dphys-swapfile.service || true
+#update-rc.d dphys-swapfile remove || true
+#sed -i 's/CONF_SWAPSIZE=.*/CONF_SWAPSIZE=0/' /etc/dphys-swapfile || true
+#sed -i 's/rootfstype=ext4/rootfstype=ext4 noswap/' /boot/firmware/cmdline.txt || true
 
 # 3. Remove fake‑hwclock (prevents stale timestamps in WAV headers)
 systemctl disable --now fake-hwclock.service || true
