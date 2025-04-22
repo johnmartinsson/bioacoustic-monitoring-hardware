@@ -57,17 +57,16 @@
 ### Recording Pi
 - Records audio files to local storage.
 - Syncs system time from Clock Pi to ensure timestamp accuracy.
-- Runs a simple script to back up files to a local USB drive (no verification).
+- Runs a simple script to back up files to a local USB drive (rsync --verified).
 - Shares its audio directory with the Analytics Pi via SSHFS.
 
 ### Analytics Pi
 - Mounts directories from both the Recording Pi (SSHFS) and NAS (NFS).
 - Runs the backup and verification script:
   - Detects new and complete files.
-  - Transfers files to NAS using `rsync`.
-  - Verifies file integrity via SHA256 hashes.
-  - Deletes verified files from the Recording Pi.
+  - Transfers files to NAS using `rsync --verified`.
   - Maintains logs of transferred and verified files.
+- Pools all logs and push weekly/daily status update
 
 ### NAS
 - Serves as long-term storage for verified audio recordings.
