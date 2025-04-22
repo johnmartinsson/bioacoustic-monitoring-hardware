@@ -31,7 +31,7 @@ read_config() {
 }
 
 # Read configuration values from [recordingpi]
-LOCAL_RECORDING_DIR=$(read_config "recordingpi" "from_audio_dir")
+LOCAL_RECORDING_DIR=$(read_config "recordingpi" "to_audio_dir")
 SEGMENT_TIME=$(read_config "recordingpi" "segment_time")
 SAMPLE_RATE=$(read_config "recordingpi" "sample_rate")
 
@@ -49,10 +49,12 @@ echo "Sample rate: ${SAMPLE_RATE}Hz"
 # Filename pattern
 FILENAME_PATTERN="${LOCAL_RECORDING_DIR}/zoom_f8_pro_%Y%m%d_%H%M%S_%04d.wav"
 
+export ALSA_PCM_DEBUG=0
 # Start recording via arecord pipe into ffmpeg
 arecord -D hw:2,0 \
         -f FLOAT_LE -c 8 -r "$SAMPLE_RATE" \
         -t raw \
+	-B 5000000  -F 1000000  -v \
     | ffmpeg -loglevel info \
         -f f32le -ar "$SAMPLE_RATE" -ac 8 -i pipe:0 \
         -c:a pcm_f32le \
