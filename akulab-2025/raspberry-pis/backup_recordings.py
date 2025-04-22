@@ -345,11 +345,10 @@ def main():
     #  Find new “complete” .wav files, skip previously synced
     ################################################################
     user = getpass.getuser()
-    today = datetime.now().strftime("%Y-%m-%d")
     log_dir = Path(f"/home/{user}/logs/backup_recordings")
     log_dir.mkdir(parents=True, exist_ok=True)
 
-    synced_files_log = log_dir / f"{today}_synced_files.log"
+    synced_files_log = log_dir / f"synced_files.log"
     synced_files = set()
     if synced_files_log.is_file():
         with open(synced_files_log, "r", encoding="utf-8") as sf:
@@ -374,32 +373,32 @@ def main():
     else:
         run_rsync_list(from_audio_dir, to_audio_dir, complete_unsynced_files, script_dir, synced_files_log)
 
-        # NEW: Attempt sha256 verification if rpi_mode == analyticspi and verify_sha256 = true
-        if rpi_mode == "analyticspi" and config.getboolean("analyticspi", "verify_sha256", fallback=False):
-            # read host info from [recordingpi] section
-            recpi_host = config["recordingpi"]["recordingpi_ip"]
-            recpi_user = config["recordingpi"]["recordingpi_user"]
-
-            for relpath in complete_unsynced_files:
-                local_path = os.path.join(to_audio_dir, relpath)    # file on NAS
-                recpi_actual_base = config["recordingpi"]["from_audio_dir"] 
-                # e.g. /home/recordingpi/akulab_2025/audio_test_0415
-
-                recpi_file = os.path.join(recpi_actual_base, relpath)
-                # e.g. /home/recordingpi/akulab_2025/audio_test_0415/zoom_f8_pro_20250416_133000_0016.wav
-
-
-                local_hash = compute_local_sha256(local_path)
-                remote_hash = compute_remote_sha256(recpi_host, recpi_file, recpi_user)
-
-                if not local_hash or not remote_hash:
-                    logging.warning(f"Skipping sha256 compare for {relpath}, missing hash.")
-                    continue
-
-                if local_hash.lower() == remote_hash.lower():
-                    logging.info(f"File {relpath} verified successfully (sha256).")
-                else:
-                    logging.error(f"File {relpath} verification FAILED! local={local_hash}, remote={remote_hash}")
+#        # NEW: Attempt sha256 verification if rpi_mode == analyticspi and verify_sha256 = true
+#        if rpi_mode == "analyticspi" and config.getboolean("analyticspi", "verify_sha256", fallback=False):
+#            # read host info from [recordingpi] section
+#            recpi_host = config["recordingpi"]["recordingpi_ip"]
+#            recpi_user = config["recordingpi"]["recordingpi_user"]
+#
+#            for relpath in complete_unsynced_files:
+#                local_path = os.path.join(to_audio_dir, relpath)    # file on NAS
+#                recpi_actual_base = config["recordingpi"]["from_audio_dir"] 
+#                # e.g. /home/recordingpi/akulab_2025/audio_test_0415
+#
+#                recpi_file = os.path.join(recpi_actual_base, relpath)
+#                # e.g. /home/recordingpi/akulab_2025/audio_test_0415/zoom_f8_pro_20250416_133000_0016.wav
+#
+#
+#                local_hash = compute_local_sha256(local_path)
+#                remote_hash = compute_remote_sha256(recpi_host, recpi_file, recpi_user)
+#
+#                if not local_hash or not remote_hash:
+#                    logging.warning(f"Skipping sha256 compare for {relpath}, missing hash.")
+#                    continue
+#
+#                if local_hash.lower() == remote_hash.lower():
+#                    logging.info(f"File {relpath} verified successfully (sha256).")
+#                else:
+#                    logging.error(f"File {relpath} verification FAILED! local={local_hash}, remote={remote_hash}")
 
     ################################################################
     #  If in recordingpi mode, remove oldest .wav if local size > max
