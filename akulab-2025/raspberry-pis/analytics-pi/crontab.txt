@@ -22,4 +22,3 @@
 #  PUSH SUMMARIES  (+27 min)
 # ------------------------------------------------------------------
 27-59/10 * * * * /home/analyticspi/Gits/bioacoustic-monitoring-hardware/akulab-2025/raspberry-pis/analytics-pi/push_summaries.sh >> /home/analyticspi/logs/cron/$(date +\%F)_push.log 2>&1
-
