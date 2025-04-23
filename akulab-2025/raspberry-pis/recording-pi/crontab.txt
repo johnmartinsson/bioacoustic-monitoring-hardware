@@ -1,1 +1,2 @@
-5,15,25,35,45,55 * * * * /usr/bin/python3 /home/recordingpi/Gits/bioacoustic-monitoring-hardware/akulab-2025/raspberry-pis/rpi_health_snapshot.py >> /home/recordingpi/logs/cron/$(date +\%F)_cron.log 2>&1
+5-59/10 * * * * /usr/bin/python3 /home/recordingpi/Gits/bioacoustic-monitoring-hardware/akulab-2025/raspberry-pis/rpi_health_snapshot.py >> /home/recordingpi/logs/cron/$(date +\%F)_cron.log 2>&1
+7-59/10 * * * * /home/recordingpi/Gits/bioacoustic-monitoring-hardware/akulab-2025/raspberry-pis/recording-pi/mount_watchdog.sh >> /home/recordingpi/logs/cron/$(date +\%F)_watchdog.log 2>&1
