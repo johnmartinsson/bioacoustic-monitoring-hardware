@@ -9,10 +9,10 @@ CONFIG_FILE="$(dirname "$0")/../config.ini"
 # -------- utility to read keys from config.ini --------
 read_config() {
   local section="$1" key="$2"
-  awk -F= -v s="$section" -v k="$key" '
-    $0 ~ "\\[" s "\\]" { in=1; next }
-    in && $1 ~ k       { gsub(/^[ \t]+|[ \t]+$/, "", $2); print $2; exit }
-    $0 ~ /^\[/         { in=0 }
+  awk -F= -v section="$section" -v key="$key" '
+    $0 ~ "\\[" section "\\]" { in_section=1; next }
+    in_section && $1 ~ key   { gsub(/^[ \t]+|[ \t]+$/, "", $2); print $2; exit }
+    $0 ~ /^\[/               { in_section=0 }
   ' "$CONFIG_FILE"
 }
 
@@ -32,5 +32,5 @@ if mountpoint -q "$USB_MOUNT_POINT"; then
   log "✅ USB HDD mount OK: $USB_MOUNT_POINT"
 else
   log "❌ USB HDD not mounted. Attempting remount…"
-  "$SCRIPT_DIR/mount_usb_hdd.sh"
+  #"$SCRIPT_DIR/mount_usb_hdd.sh"
 fi

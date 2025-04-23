@@ -67,9 +67,8 @@ def main() -> None:
         html_parts.extend(parse_backup_log(backup_log, pi, log_date))
 
         # -------- mount watchdog ----------
-        if pi == "analyticspi":
-            watchdog_log = os.path.join(pi_folder, "mount_watchdog", f"{log_date}_mount_watchdog.log")
-            html_parts.append(parse_mount_watchdog(watchdog_log, log_date))
+        watchdog_log = os.path.join(pi_folder, "mount_watchdog", f"{log_date}_mount_watchdog.log")
+        html_parts.append(parse_mount_watchdog(watchdog_log, log_date))
 
     html_parts.append("</body></html>")
 
