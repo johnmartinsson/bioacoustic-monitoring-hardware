@@ -20,7 +20,7 @@ read_config() {
 # Read values from config.ini
 REMOTE_USER=$(read_config "recordingpi" "recordingpi_user")
 REMOTE_IP=$(read_config "recordingpi" "recordingpi_ip")
-REMOTE_DIR=$(read_config "recordingpi" "from_audio_dir")
+REMOTE_DIR=$(read_config "recordingpi" "to_audio_dir")
 LOCAL_MOUNT=$(read_config "analyticspi" "from_audio_dir")
 SSH_KEY="/home/analyticspi/.ssh/id_rsa"
 
