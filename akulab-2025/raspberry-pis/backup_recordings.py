@@ -348,7 +348,7 @@ def main():
     log_dir = Path(f"/home/{user}/logs/backup_recordings")
     log_dir.mkdir(parents=True, exist_ok=True)
 
-    synced_files_log = log_dir / f"synced_files.log"
+    synced_files_log = log_dir / f"synced_files/synced_files.log"
     synced_files = set()
     if synced_files_log.is_file():
         with open(synced_files_log, "r", encoding="utf-8") as sf:
