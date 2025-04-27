@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 CONFIG_FILE="$(dirname "$0")/../config.ini"
-DRY_RUN=true
+DRY_RUN=false
 
 if [[ "$1" == "--dry-run" ]]; then
   DRY_RUN=true
@@ -42,7 +42,7 @@ if $DRY_RUN; then
 fi
 
 echo "Mounting NAS $NAS_IP:$NAS_REMOTE_DIR to $LOCAL_MOUNT..."
-mount -t nfs "${NAS_IP}:${NAS_REMOTE_DIR}" "$LOCAL_MOUNT"
+sudo mount -t nfs "${NAS_IP}:${NAS_REMOTE_DIR}" "$LOCAL_MOUNT"
 
 if mountpoint -q "$LOCAL_MOUNT"; then
   echo "✅ NAS mounted successfully at $LOCAL_MOUNT"
