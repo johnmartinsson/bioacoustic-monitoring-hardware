@@ -1,12 +1,12 @@
 # ------------------------------------------------------------------
 #  BACKUP  (idle I/O, every 10 min, offset +5)
 # ------------------------------------------------------------------
-5-59/10 * * * * ionice -c3 nice -n19 /usr/bin/python3 /home/analyticspi/Gits/bioacoustic-monitoring-hardware/akulab-2025/raspberry-pis/backup_recordings.py --rpi=analyticspi >> /home/analyticspi/logs/cron/$(date +\%F)_backup.log 2>&1
+5-59/10 * * * * flock -n /tmp/backup_recordings.lock ionice -c3 nice -n19 /usr/bin/python3 /home/analyticspi/Gits/bioacoustic-monitoring-hardware/akulab-2025/raspberry-pis/backup_recordings.py --rpi=analyticspi >> /home/analyticspi/logs/cron/$(date +\%F)_backup.log 2>&1
 
 # ------------------------------------------------------------------
 #  HEALTH SNAPSHOT  (+7 min, no overlap)
 # ------------------------------------------------------------------
-7-59/10 * * * * /usr/bin/python3 /home/analyticspi/Gits/bioacoustic-monitoring-hardware/akulab-2025/raspberry-pis/rpi_health_snapshot.py >> /home/analyticspi/logs/cron/$(date +\%F)_health.log 2>&1
+7-59/10 * * * * flock -n /tmp/health_snapshot.lock /usr/bin/python3 /home/analyticspi/Gits/bioacoustic-monitoring-hardware/akulab-2025/raspberry-pis/rpi_health_snapshot.py >> /home/analyticspi/logs/cron/$(date +\%F)_health.log 2>&1
 
 # ------------------------------------------------------------------
 #  MOUNT WATCHDOG  (+15 min, very light)
@@ -16,9 +16,10 @@
 # ------------------------------------------------------------------
 #  POOL & SUMMARY  (+25 min)  – large rsync + HTML generation
 # ------------------------------------------------------------------
-25-59/10 * * * * ionice -c3 nice -n19 /home/analyticspi/Gits/bioacoustic-monitoring-hardware/akulab-2025/raspberry-pis/analytics-pi/pool_logs.sh && /usr/bin/python3 /home/analyticspi/Gits/bioacoustic-monitoring-hardware/akulab-2025/raspberry-pis/analytics-pi/summarize_daily_logs.py >> /home/analyticspi/logs/cron/$(date +\%F)_summary.log 2>&1
+25-59/10 * * * * flock -n /tmp/pool_and_summary.lock ionice -c3 nice -n19 /home/analyticspi/Gits/bioacoustic-monitoring-hardware/akulab-2025/raspberry-pis/analytics-pi/pool_logs.sh && /usr/bin/python3 /home/analyticspi/Gits/bioacoustic-monitoring-hardware/akulab-2025/raspberry-pis/analytics-pi/summarize_daily_logs.py >> /home/analyticspi/logs/cron/$(date +\%F)_summary.log 2>&1
 
 # ------------------------------------------------------------------
 #  PUSH SUMMARIES  (+27 min)
 # ------------------------------------------------------------------
 27-59/10 * * * * /home/analyticspi/Gits/bioacoustic-monitoring-hardware/akulab-2025/raspberry-pis/analytics-pi/push_summaries.sh >> /home/analyticspi/logs/cron/$(date +\%F)_push.log 2>&1
+
