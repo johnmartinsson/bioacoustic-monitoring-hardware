@@ -2,18 +2,9 @@
 """
 backup_recordings.py
 
-A single script to handle audio backup in two modes:
+A single script to handle audio backup:
 
-1) --rpi=recordingpi
-    - Source: Local SD card (from_audio_dir)
-    - Destination: USB drive (to_audio_dir)
-    - Includes:
-        * SMART check on /dev/sda
-        * Verification that the USB drive is mounted
-        * Automatic removal of oldest .wav files if local recording directory
-          grows beyond max_local_recording_size_gb.
-
-2) --rpi=analyticspi
+1) --rpi=analyticspi
     - Source: SSHFS-mounted directory from the Recording Pi (from_audio_dir)
     - Destination: NFS-mounted NAS directory (to_audio_dir)
     - Includes:
@@ -145,7 +136,7 @@ def is_file_complete(filepath, modification_threshold):
     """
     last_modified = os.path.getmtime(filepath)
     if (time.time() - last_modified) > modification_threshold:
-        return is_file_size_stable(filepath)
+        return True #is_file_size_stable(filepath)
     return False
 
 
@@ -161,7 +152,8 @@ def run_rsync_list(from_dir: str, to_dir: str, file_list: list, script_dir: Path
 
     rsync_command = [
         "rsync",
-        "-av",
+        "-rtv",
+        "--no-g", "--no-o",
         "--files-from", str(temp_list_path),
         f"{from_dir}/",
         f"{to_dir}/"
@@ -192,48 +184,10 @@ def run_rsync_list(from_dir: str, to_dir: str, file_list: list, script_dir: Path
     except OSError:
         pass
 
-
-def get_directory_size_gb(dir_path: str) -> float:
-    """Return total size of all files under dir_path, in gigabytes."""
-    from pathlib import Path
-    total_bytes = 0
-    p = Path(dir_path).resolve()
-    if not p.is_dir():
-        return 0.0
-    for f in p.rglob("*"):
-        if f.is_file():
-            total_bytes += f.stat().st_size
-    return total_bytes / (1024 ** 3)
-
-
-def remove_oldest_files(dir_path: str, max_size_gb: float):
-    """
-    Remove the oldest .wav files in dir_path until total size is <= max_size_gb.
-    Sort by modification time ascending (oldest first).
-    """
-    p = Path(dir_path).resolve()
-    all_wavs = sorted(p.rglob("*.wav"), key=lambda x: x.stat().st_mtime)
-
-    while True:
-        current_size_gb = get_directory_size_gb(str(p))
-        if current_size_gb <= max_size_gb:
-            break
-
-        if not all_wavs:
-            logging.warning("No more .wav files to remove, but still above size limit.")
-            break
-
-        oldest_file = all_wavs.pop(0)
-        try:
-            oldest_file.unlink()
-            logging.info(f"Removed oldest file: {oldest_file}")
-        except Exception as e:
-            logging.error(f"Error removing file {oldest_file}: {e}")
-
-
 ###############################################################################
 # NEW HELPERS FOR SHA256 VERIFICATION
 ###############################################################################
+# TODO: something is not working with this, debug. Commented out for now.
 
 def compute_local_sha256(filepath):
     """
@@ -292,54 +246,28 @@ def main():
     # Common recording settings (used for determining "complete" threshold)
     record_duration = config.getint("recordingpi", "segment_time", fallback=3600)
     modification_threshold = record_duration + 60
-    max_local_recording_size_gb = config.getfloat("recordingpi", "max_local_recording_size_gb", fallback=32.0)
 
     logging.info(f"Running in {rpi_mode} mode.")
     logging.info(f"from_audio_dir = {from_audio_dir}")
     logging.info(f"to_audio_dir   = {to_audio_dir}")
     logging.info(f"record_duration = {record_duration}, so modification_threshold = {modification_threshold}")
-    logging.info(f"max_local_recording_size_gb = {max_local_recording_size_gb}")
 
     # Make sure the directories exist (locally).
-    Path(from_audio_dir).mkdir(parents=True, exist_ok=True)
-    Path(to_audio_dir).mkdir(parents=True, exist_ok=True)
+    #Path(from_audio_dir).mkdir(parents=True, exist_ok=True)
+    #Path(to_audio_dir).mkdir(parents=True, exist_ok=True)
 
     ################################################################
     # MODE-SPECIFIC LOGIC
     ################################################################
-    if rpi_mode == "recordingpi":
-        # 1) Run SMART check on /dev/sda (optional)
-        # run_smart_check(device_path="/dev/sda")
+    # analytics pi
+    # We expect from_audio_dir and to_audio_dir to be SSHFS and NFS respectively
+    if not check_mount_or_log(from_audio_dir, label="SSHFS from_audio_dir"):
+        logging.error("Exiting script because from_audio_dir is not properly mounted on the Analytics Pi.")
+        return
 
-        # 2) Verify local USB is mounted
-        if not check_mount_or_log(to_audio_dir, label="USB backup directory"):
-            logging.info("Exiting script because USB drive is not properly mounted.")
-            return
-
-        # 3) Log df for the backup directory
-        logging.info("Logging df -h for the backup directory (USB):")
-        try:
-            df_command = ["df", "-h", to_audio_dir]
-            df_result = subprocess.run(df_command, capture_output=True, text=True)
-            if df_result.returncode == 0:
-                logging.info(f"df -h {to_audio_dir}:\n{df_result.stdout}")
-            else:
-                logging.warning(f"df command returned non-zero exit code: {df_result.returncode}")
-                logging.warning(f"df stdout:\n{df_result.stdout}")
-                logging.warning(f"df stderr:\n{df_result.stderr}")
-        except Exception as e:
-            logging.error(f"Error running df command: {e}")
-
-    else:
-        # analytics pi
-        # We expect from_audio_dir and to_audio_dir to be SSHFS and NFS respectively
-        if not check_mount_or_log(from_audio_dir, label="SSHFS from_audio_dir"):
-            logging.error("Exiting script because from_audio_dir is not properly mounted on the Analytics Pi.")
-            return
-
-        if not check_mount_or_log(to_audio_dir, label="NFS to_audio_dir"):
-            logging.error("Exiting script because to_audio_dir (NAS) is not properly mounted on the Analytics Pi.")
-            return
+    if not check_mount_or_log(to_audio_dir, label="NFS to_audio_dir"):
+        logging.error("Exiting script because to_audio_dir (NAS) is not properly mounted on the Analytics Pi.")
+        return
 
     ################################################################
     #  Find new “complete” .wav files, skip previously synced
@@ -350,6 +278,7 @@ def main():
 
     synced_files_log = log_dir / f"synced_files/synced_files.log"
     synced_files = set()
+    logging.info("Check previously synced files ..")
     if synced_files_log.is_file():
         with open(synced_files_log, "r", encoding="utf-8") as sf:
             for line in sf:
@@ -359,6 +288,7 @@ def main():
 
     # Gather complete unsynced .wav files
     complete_unsynced_files = []
+    logging.info("Gather complete unsynced files ..")
     for fpath in Path(from_audio_dir).rglob("*.wav"):
         rel_path = str(fpath.relative_to(from_audio_dir))  # store as relative path
         if rel_path in synced_files:
@@ -403,21 +333,8 @@ def main():
     ################################################################
     #  If in recordingpi mode, remove oldest .wav if local size > max
     ################################################################
-    if rpi_mode == "recordingpi":
-        try:
-            current_size_gb = get_directory_size_gb(from_audio_dir)
-            logging.info(f"Current size of {from_audio_dir}: {current_size_gb:.2f} GB")
-
-            if current_size_gb > max_local_recording_size_gb:
-                logging.info(f"Local recording directory exceeds {max_local_recording_size_gb} GB. Removing oldest .wav files.")
-                remove_oldest_files(from_audio_dir, max_local_recording_size_gb)
-            else:
-                logging.info("Local recording directory is within allowed size limit.")
-        except Exception as e:
-            logging.error(f"Error checking or trimming local directory size: {e}")
-    else:
-        # analytics pi => skip removal
-        logging.info("Skipping local file-removal routine in analytics pi mode.")
+    # analytics pi => skip removal
+    logging.info("Skipping local file-removal routine in analytics pi mode.")
 
     logging.info("Finished backup_recordings.py script.")
 
