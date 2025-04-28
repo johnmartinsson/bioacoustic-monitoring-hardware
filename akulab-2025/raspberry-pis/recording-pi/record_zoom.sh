@@ -50,7 +50,7 @@ echo "Segment time        : ${SEGMENT_TIME}s"
 echo "Sample rate         : ${SAMPLE_RATE} Hz"
 
 # ───────────────────────── 4.  Launch capture pipeline ──────────────────────────
-FILENAME_PATTERN="${LOCAL_RECORDING_DIR}/zoom_f8_pro_%Y%m%d_%H%M%S_%04d.wav"
+FILENAME_PATTERN="${LOCAL_RECORDING_DIR}/auklab_zoom_f8_pro_%Y%m%d_%H%M%S_%04d.wav"
 
 export ALSA_PCM_DEBUG=0          # set to 1 if you want kernel ring‑buffer stats
 
