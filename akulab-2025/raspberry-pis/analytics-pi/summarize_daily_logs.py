@@ -189,7 +189,7 @@ def parse_backup_log(log_path: str, pi_name: str, log_date: str):
 
     errors, synced, verified = [], [], []
     capturing = False
-    wav_re = re.compile(r"(zoom_f8_pro_\d{8}_\d{6}_\d{4}\.wav)")
+    wav_re = re.compile(r"(auklab_zoom_f8_pro_\d{8}_\d{6}_\d{4}\.wav)")
 
     with open(log_path, "r", encoding="utf-8") as fh:
         for raw in fh:
