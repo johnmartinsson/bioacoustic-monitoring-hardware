@@ -65,6 +65,8 @@ def main() -> None:
         # -------- backup recordings -------
         backup_log = os.path.join(pi_folder, "backup_recordings", f"{log_date}_backup_recordings.log")
         html_parts.extend(parse_backup_log(backup_log, pi, log_date))
+        #synced_file_log = os.path.join(pi_folder, "backup_recordings/synced_files/synced_files.log")
+        #html_parts.extend(parse_synced_files_log(synced_file_log, log_date))
 
         # -------- mount watchdog ----------
         watchdog_log = os.path.join(pi_folder, "mount_watchdog", f"{log_date}_mount_watchdog.log")
@@ -182,6 +184,41 @@ def _is_float(x: str) -> bool:
 # ----------------------------------------------------------------------------
 # Backup recordings, watchdog – unchanged
 # ----------------------------------------------------------------------------
+
+def parse_synced_files_log(log_path: str, log_date: str) -> List[str]:
+    """
+    Parse ~/logs/backup_recordings/synced_files/synced_files.log and build an
+    HTML snippet containing every .wav file whose embedded date matches
+    `log_date` (YYYY-MM-DD).
+
+    Example filename matched:
+        auklab_zoom_f8_pro_20250428_111831_0028.wav
+    """
+    if not os.path.isfile(log_path):
+        return [f"<p>No synced_files.log found at {log_path}.</p>"]
+
+    # Convert 2025-04-28 → 20250428 for pattern-matching
+    date_compact = log_date.replace("-", "")
+    wav_re = re.compile(
+        rf"auklab_zoom_f8_pro_{date_compact}_"      # date part
+        r"\d{{6}}_\d{{4}}\.wav$"                    # HHMMSS_chunk.wav
+    )
+
+    synced: List[str] = []
+    with open(log_path, "r", encoding="utf-8") as fh:
+        for raw in fh:
+            fname = os.path.basename(raw.strip())
+            if wav_re.match(fname):
+                synced.append(fname)
+
+    if synced:
+        html = [f"<h4>Successfully Synced Files ({len(synced)} total)</h4><ol>"]
+        html.extend(f"<li>{f}</li>" for f in synced)
+        html.append("</ol>")
+    else:
+        html = [f"<p>No .wav files synced on {log_date}.</p>"]
+
+    return html
 
 def parse_backup_log(log_path: str, pi_name: str, log_date: str):
     if not os.path.isfile(log_path):
