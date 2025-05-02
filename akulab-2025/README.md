@@ -129,20 +129,6 @@ cd bioacoustic-monitoring-hardware/akulab/
 
 ## Recording pi
 
-```
-bash recording_pi.sh
-```
-
 ## Clock pi
 
-```
-bash clock_pi.sh
-```
-
 ## Analytics pi
-
-```
-bash analytics_pi.sh
-```
-
-## Log files
