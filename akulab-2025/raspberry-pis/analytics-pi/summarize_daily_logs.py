@@ -192,16 +192,18 @@ def parse_synced_files_log(log_path: str, log_date: str) -> List[str]:
     `log_date` (YYYY-MM-DD).
 
     Example filename matched:
-        auklab_zoom_f8_pro_20250428_111831_0028.wav
+        auklab_20250428T111831.wav
     """
     if not os.path.isfile(log_path):
         return [f"<p>No synced_files.log found at {log_path}.</p>"]
 
     # Convert 2025-04-28 → 20250428 for pattern-matching
     date_compact = log_date.replace("-", "")
+
+    # Example file: auklab_20250428T111831.wav
     wav_re = re.compile(
-        rf"auklab_zoom_f8_pro_{date_compact}_"      # date part
-        r"\d{{6}}_\d{{4}}\.wav$"                    # HHMMSS_chunk.wav
+        rf"auklab_{date_compact}T"   # date part plus literal “T”
+        r"\d{6}\.wav$"               # HHMMSS.wav
     )
 
     synced: List[str] = []
