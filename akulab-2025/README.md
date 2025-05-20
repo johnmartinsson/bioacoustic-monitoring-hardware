@@ -77,3 +77,29 @@
 - Files are copied via a basic script with no hash verification.
 
 ---
+
+# Changes During Recording Season
+
+### Audio-capture command updated at **2025-05-20 T16 18 45 Z**
+
+| Aspect                          | **Previous command**                                                                                    | **New command (2025-05-20)**                        | Practical effect                                                                                                                                                             |
+| ------------------------------- | ------------------------------------------------------------------------------------------------------- | --------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Filename pattern**            | `auklab_zoom_f8_pro_%Y%m%d_%H%M%S_%04d.wav`                                                             | `auklab_%Y%m%dT%H%M%S.wav`                          | • ISO-8601 style (`YYYYMMDDTHHMMSS`) matches camera files.  <br>• Per-segment index (`_%04d`) removed because files now start exactly on the real-time boundary.             |
+| **ALSA buffer / period**        | `-B 5000000 -F 1000000`  (5 s / 1 s)                                                                    | `-B 250000 -F 20000`  (250 ms / 20 ms)              | • Capture-to-timestamp latency shrinks from ≤ 1 s to **≤ 20 ms**. <br>• Still \~12 periods of safety against disk stalls.                                                    |
+| **Wall-clock stamping**         | none (FFmpeg used monotonic sample count)                                                               | `-use_wallclock_as_timestamps 1` before `-i pipe:0` | • Every audio packet now carries **absolute UTC PTS**, phase-locked to the Stratum-1 NTP server.  <br>• Makes cross-correlation with camera audio a one-off constant offset. |
+| **FFmpeg options consolidated** | separate long lines                                                                                     | combined / reordered                                | No functional change—just cleaner.                                                                                                                                           |
+| **`creation_time` tag**         | static value at script launch (same in every chunk)                                                     | unchanged (still static) †                          | If per-file timestamps are needed, add a nightly post-stamp or drop the tag.  PTS + filename already encode exact start time.                                                |
+| **Other flags kept**            | `pcm_f32le`, `-rf64 always`, `-write_bext 1`, `segment_time`, `segment_atclocktime`, `reset_timestamps` | unchanged                                           | Files stay RF64-safe, 10-min chunks start on clock boundary, contain BWF metadata.                                                                                           |
+
+† **Static `creation_time`**: the tag is evaluated once when the script starts, so it is identical in all segments recorded in that session.  This is expected; absolute timing now lives in the packet PTS and the filename.
+
+---
+
+#### Net result from 16:18:45 Z onward
+
+* **Latency** from microphone diaphragm to recorded timestamp dropped by \~980 ms.
+* **Timestamps** are in the **same UTC domain** as the cameras (which also now use wall-clock PTS), simplifying A/V alignment.
+* **Filenames** are uniform across audio and video, easing automated pairing and archive lookup.
+
+These changes apply to every WAV chunk whose first filename timestamp is **≥ 20250520T161800**, marking the switchover point.
+
