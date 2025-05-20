@@ -67,7 +67,7 @@ ffmpeg  -loglevel info \
         -segment_format wav -strftime 1 \
         -write_bext 1        \
         -metadata coding_history="ZoomF8Pro USB ${SAMPLE_RATE}Hz/8ch float via arecord pipe" \
-        -metadata comment="Ch1=BOND ; Ch2=FAR3; Ch3=TRI6; Ch4=TRI7C; Ch5=BOND1; Ch6=ROST2; Ch7=TRI2; Ch8=Bjorn1" \
+        -metadata comment="Ch1=BOND6; Ch2=FAR3; Ch3=TRI6; Ch4=TRI7C; Ch5=BOND1; Ch6=ROST2; Ch7=TRI2; Ch8=Bjorn1" \
         "$FILENAME_PATTERN"
 
 echo "🎙  Recording started — files will roll every ${SEGMENT_TIME}s."
