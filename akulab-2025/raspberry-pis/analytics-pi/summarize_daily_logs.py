@@ -228,7 +228,19 @@ def parse_backup_log(log_path: str, pi_name: str, log_date: str):
 
     errors, synced, verified = [], [], []
     capturing = False
-    wav_re = re.compile(r"(auklab_\d{8}T\d{6}\.wav)")
+    # matches e.g.                     auklab_20250520T171000.wav
+    #           and (legacy)           auklab_zoom_f8_pro_20240210_120015_0001.wav
+    wav_re = re.compile(
+        r"("
+        r"auklab_"                         # mandatory prefix
+        r"(?:zoom_f8_pro_)?"               # optional legacy recorder tag
+        r"\d{8}"                           # YYYYMMDD
+        r"(?:T|_)"                         # either “T” or “_” as date/time separator
+        r"\d{6}"                           # HHMMSS
+        r"(?:_\d{4})?"                     # optional Zoom file-counter
+        r"\.wav"
+        r")"
+    )
 
     with open(log_path, "r", encoding="utf-8") as fh:
         for raw in fh:
