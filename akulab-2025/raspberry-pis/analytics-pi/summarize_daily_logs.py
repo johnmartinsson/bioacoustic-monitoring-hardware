@@ -63,10 +63,10 @@ def main() -> None:
         html_parts.append(parse_health_csv(health_csv, pi, log_date))
 
         # -------- backup recordings -------
-        backup_log = os.path.join(pi_folder, "backup_recordings", f"{log_date}_backup_recordings.log")
-        html_parts.extend(parse_backup_log(backup_log, pi, log_date))
-        #synced_file_log = os.path.join(pi_folder, "backup_recordings/synced_files/synced_files.log")
-        #html_parts.extend(parse_synced_files_log(synced_file_log, log_date))
+        #backup_log = os.path.join(pi_folder, "backup_recordings", f"{log_date}_backup_recordings.log")
+        #html_parts.extend(parse_backup_log(backup_log, pi, log_date))
+        synced_file_log = os.path.join(pi_folder, "backup_recordings/synced_files/synced_files.log")
+        html_parts.extend(parse_synced_files_log(synced_file_log, log_date))
 
         # -------- mount watchdog ----------
         watchdog_log = os.path.join(pi_folder, "mount_watchdog", f"{log_date}_mount_watchdog.log")
