@@ -28,7 +28,7 @@ import re
 import csv
 import statistics
 import collections
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path
 from typing import List, Dict
 
@@ -38,8 +38,8 @@ PI_NAMES = ["clockpi", "analyticspi", "recordingpi"]
 # Entry‑point
 # ----------------------------------------------------------------------------
 
-def main() -> None:
-    log_date = sys.argv[1] if len(sys.argv) > 1 else datetime.now().strftime("%Y-%m-%d")
+def main(log_date: str) -> None:
+    #log_date = sys.argv[1] if len(sys.argv) > 1 else datetime.now().strftime("%Y-%m-%d")
 
     LOG_BASE = "/home/analyticspi/logs/pooled"
     DAILY_SUM_DIR = "/home/analyticspi/logs/daily_summaries"
@@ -308,5 +308,8 @@ def parse_mount_watchdog(log_path: str, log_date: str) -> str:
 
 
 if __name__ == "__main__":
-    main()
-
+    # Always generate for both yesterday and today to catch late-synced files
+    today = datetime.now().strftime("%Y-%m-%d")
+    yesterday = (datetime.now() - timedelta(days=1)).strftime("%Y-%m-%d")
+    for date in [yesterday, today]:
+        main(date)
