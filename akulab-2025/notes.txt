@@ -1,0 +1,6 @@
+# Some notes on recording setup
+- the -rf64 flag did not take in ffmpeg, and 5.5 GB files were recorded, but only 4 GB visible to programs due to no RF64 header. Fixable in post by adding the correct header.
+- even with local NTP server, sync is hard. Timestamps from wallclock means that any delay from physical signal to digital available at computer with wallclock will be added to the time, and if that delay is different for different sensor streams they are out of sync. Relying on filenames is insufficient. Real solution is to sync the actual sampling clocks of the sensors to NTP server and have the sensor timestamp the data. Filenames are just an organization thing, synced files are done in post.
+
+# Some notes on analysis
+- BirdNET does not seem to detect Guillemots well, Perch seem much better.
