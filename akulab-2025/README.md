@@ -11,10 +11,12 @@
 - 20250512T154500 : windshield at Rost 2 re-installed without tape
 - between 20250511T000000 and 20250512T150000 : windshield at Bonden 1 went missing
 - 20250512T110000 : windshield installed on Triangle 6
+- 20250520T161845 : audio capture command was updated and audio recording process was restarted
 - 20250522T110500 : windshield installed on Bjorn 1 microphone
 - between 20250601T141500 and 20250601T141500 : microphone was re-installed at Bonden 1 with windshield inside the tube
 - 20250602T141000 : microphone at Bonden 1 was adjusted because the birds had pecked at it
 - between 20250608T100900 and 20250608T132400 : windshield and microphone cover fell off microphone at Bonden 1. Microphone was removed and refitted with cover and windshield but not reinstalled.
+
 
 ### Audio-capture command updated at **2025-05-20 T16 18 45 Z**
 
