@@ -58,6 +58,7 @@ The main challenge is **clock drift** between the audio recording computer and t
     *   `ffmpeg` prints this to its `stderr` output (e.g., `Input #0... start: 1749536991.176616`).
     *   Represents when `ffmpeg`'s input module *actually started processing audio samples*.
     *   **This is the most accurate timestamp for when audio data flow began for that `ffmpeg` instance.**
+    *   Unfortunately it does not seem like `ffmpeg` can timestamp the .wav file with this. You need to capture the stderr and log or write to the .wav file in post.
     *   Can be captured by redirecting `ffmpeg`'s `stderr` to a log file and then parsing it.
         ```bash
         # In script, after ffmpeg runs and logs to FFMPEG_STDERR_LOG
