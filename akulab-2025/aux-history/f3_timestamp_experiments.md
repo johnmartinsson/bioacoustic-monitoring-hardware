@@ -2,6 +2,8 @@
 
 This document summarizes key learnings and techniques for long-term audio recording using a Zoom F3 as a USB audio interface with `ffmpeg` on Ubuntu, focusing on achieving precise timestamping for synchronization with a separate video stream.
 
+The most reliable and professional way to achieve sync would be to jam sync microphones and cameras using a common Timecode source. However, the F8 Pro does not support jam sync in USB Audio Interface mode, so we need to do something else.
+
 ## 1. Device Connection & Initial Setup (Zoom F3)
 
 *   **REC/HOLD Switch:** Must **NOT** be in the "HOLD" position to power on or operate the F3. This is a common cause for the device appearing "dead."
