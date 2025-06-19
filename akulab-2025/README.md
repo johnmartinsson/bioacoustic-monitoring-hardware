@@ -1,3 +1,7 @@
+# Main Code
+
+The all the main code that is running is in the 'raspberry-pis' folder.
+
 # Changes During Recording Season
 
 ## Notes on changes during the recording season
