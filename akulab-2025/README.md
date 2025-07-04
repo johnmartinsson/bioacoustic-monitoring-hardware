@@ -20,6 +20,9 @@ The all the main code that is running is in the 'raspberry-pis' folder.
 - between 20250601T141500 and 20250601T141500 : microphone was re-installed at Bonden 1 with windshield inside the tube
 - 20250602T141000 : microphone at Bonden 1 was adjusted because the birds had pecked at it
 - between 20250608T100900 and 20250608T132400 : windshield and microphone cover fell off microphone at Bonden 1. Microphone was removed and refitted with cover and windshield but not reinstalled.
+- 20250701T120618 : windshield and cap lost at Bonden 1 due to guillemot kicking it off.
+- 20250702T123500 : windshield and cap re-fitted on Bonden 1
+- 20250702T153400 : windshield re-fitted on Bjorn 1 (not known when lost)
 
 
 ### Audio-capture command updated at **2025-05-20 T16 18 45 Z**
