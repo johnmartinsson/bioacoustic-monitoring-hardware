@@ -67,6 +67,7 @@ ffmpeg  -loglevel info \
         -segment_atclocktime 1 -reset_timestamps 0 \
         -segment_format wav -strftime 1 \
         -segment_list "$SEGMENT_LIST" -segment_list_type csv \
+        -avoid_negative_ts disabled \
         -write_bext 1        \
         -metadata coding_history="ZoomF8Pro USB ${SAMPLE_RATE}Hz/8ch float via arecord pipe" \
         -metadata comment="Ch1=BOND6; Ch2=FAR3; Ch3=TRI6; Ch4=TRI7C; Ch5=BOND1; Ch6=ROST2; Ch7=TRI2; Ch8=Bjorn1" \
