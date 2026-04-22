@@ -51,6 +51,7 @@ echo "Sample rate         : ${SAMPLE_RATE} Hz"
 
 # ───────────────────────── 4.  Launch capture pipeline ──────────────────────────
 FILENAME_PATTERN="${LOCAL_RECORDING_DIR}/auklab_%Y%m%dT%H%M%S.wav"
+SEGMENT_LIST="${LOCAL_RECORDING_DIR}/zoom_manifest.csv"
 
 export ALSA_PCM_DEBUG=0          # set to 1 if you want kernel ring‑buffer stats
 
@@ -60,11 +61,12 @@ arecord -D hw:2,0           \
         -B 250000 -F 20000 -v |
 ffmpeg  -loglevel info \
         -f f32le -ar "$SAMPLE_RATE" -ac 8 \
-        -use_wallclock_as_timestamps 1 -i pipe:0 \
+        -use_wallclock_as_timestamps 1 -i pipe:0 -copyts \
         -c:a pcm_f32le -rf64 always       \
         -f segment -segment_time "$SEGMENT_TIME" \
-        -segment_atclocktime 1 -reset_timestamps 1 \
+        -segment_atclocktime 1 -reset_timestamps 0 \
         -segment_format wav -strftime 1 \
+        -segment_list "$SEGMENT_LIST" -segment_list_type csv \
         -write_bext 1        \
         -metadata coding_history="ZoomF8Pro USB ${SAMPLE_RATE}Hz/8ch float via arecord pipe" \
         -metadata comment="Ch1=BOND6; Ch2=FAR3; Ch3=TRI6; Ch4=TRI7C; Ch5=BOND1; Ch6=ROST2; Ch7=TRI2; Ch8=Bjorn1" \

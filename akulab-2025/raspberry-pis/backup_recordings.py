@@ -168,6 +168,9 @@ def run_rsync_list(from_dir: str, to_dir: str, file_list: list, script_dir: Path
         if completed_proc.stderr:
             logging.info(f"rsync stderr:\n{completed_proc.stderr}")
 
+        # Ensure log directory exists before appending synced entries.
+        synced_files_log.parent.mkdir(parents=True, exist_ok=True)
+
         # Mark them as synced.
         with open(synced_files_log, "a", encoding="utf-8") as sf:
             for rp in file_list:
@@ -276,7 +279,8 @@ def main():
     log_dir = Path(f"/home/{user}/logs/backup_recordings")
     log_dir.mkdir(parents=True, exist_ok=True)
 
-    synced_files_log = log_dir / f"synced_files/synced_files.log"
+    synced_files_log = log_dir / "synced_files" / "synced_files.log"
+    synced_files_log.parent.mkdir(parents=True, exist_ok=True)
     synced_files = set()
     logging.info("Check previously synced files ..")
     if synced_files_log.is_file():
@@ -302,6 +306,23 @@ def main():
         logging.info("No new complete .wav files found to sync at this time.")
     else:
         run_rsync_list(from_audio_dir, to_audio_dir, complete_unsynced_files, script_dir, synced_files_log)
+
+    # Sync manifest file (always re-synced; ffmpeg appends to it continuously)
+    manifest_src = Path(from_audio_dir) / "zoom_manifest.csv"
+    if manifest_src.exists():
+        rsync_manifest = [
+            "rsync", "-t", "--no-g", "--no-o",
+            str(manifest_src),
+            f"{to_audio_dir}/"
+        ]
+        logging.info(f"Syncing manifest: {' '.join(rsync_manifest)}")
+        result = subprocess.run(rsync_manifest, capture_output=True, text=True)
+        if result.returncode == 0:
+            logging.info("Manifest synced successfully.")
+        else:
+            logging.warning(f"Manifest rsync failed (code {result.returncode}): {result.stderr}")
+    else:
+        logging.info("No zoom_manifest.csv found; skipping manifest sync.")
 
 #        # NEW: Attempt sha256 verification if rpi_mode == analyticspi and verify_sha256 = true
 #        if rpi_mode == "analyticspi" and config.getboolean("analyticspi", "verify_sha256", fallback=False):
