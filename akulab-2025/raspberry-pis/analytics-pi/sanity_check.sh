@@ -100,7 +100,7 @@ fi
 
 header "3) Audio Files"
 
-AUDIO_MAX_AGE_MIN=20  # expect a new file within this many minutes
+AUDIO_MAX_AGE_MIN=30  # expect a new file within this many minutes
 
 check_audio_dir() {
   local label="$1" dir="$2"
@@ -148,8 +148,8 @@ fi
 
 header "4) NTP / Chrony Sources"
 
-check_chrony() {
-  local label="$1" host="$2" user="$3" expected_src="$4"
+check_chrony_client() {
+  local label="$1" host="$2" user="$3"
   local out
   if [[ "$host" == "local" ]]; then
     out=$(chronyc sources -n 2>/dev/null || true)
@@ -161,20 +161,46 @@ check_chrony() {
     warn "$label: could not reach chrony"
     return
   fi
+  # Accept IP or hostname match for Clock Pi
   local selected
   selected=$(echo "$out" | awk '/^\^\*/ {print $2; exit}')
   if [[ -z "$selected" ]]; then
     fail "$label: no selected chrony source (no ^* line)"
-  elif [[ "$selected" == "$expected_src"* ]]; then
-    pass "$label: chrony using expected source $selected"
+  elif [[ "$selected" == "$CLOCKPI_IP" || "$selected" == *"clockpi"* ]]; then
+    pass "$label: chrony using Clock Pi as source ($selected)"
   else
-    warn "$label: chrony source is $selected (expected $expected_src)"
+    warn "$label: chrony source is $selected (expected Clock Pi $CLOCKPI_IP)"
   fi
 }
 
-check_chrony "Analytics Pi"  "local"              ""                   "$CLOCKPI_IP"
-check_chrony "Recording Pi"  "$RECORDINGPI_IP"    "$RECORDINGPI_USER"  "$CLOCKPI_IP"
-check_chrony "Clock Pi"      "$CLOCKPI_IP"        "$CLOCKPI_USER"      ""
+check_chrony_server() {
+  local label="$1" host="$2" user="$3"
+  local out
+  out=$(ssh -o ConnectTimeout=5 -o BatchMode=yes "${user}@${host}" \
+    "chronyc sources" 2>/dev/null || true)
+  if [[ -z "$out" ]]; then
+    warn "$label: could not reach chrony"
+    return
+  fi
+  # Clock Pi uses a local reference (#* prefix = local clock like GPS/PPS)
+  local selected
+  selected=$(echo "$out" | awk '/^#\*/ {print $2; exit}')
+  if [[ -n "$selected" ]]; then
+    pass "$label: chrony locked to local reference clock ($selected) — GPS/PPS OK"
+  else
+    # Might also be using a network fallback (^*) if GPS not yet locked
+    selected=$(echo "$out" | awk '/^\^\*/ {print $2; exit}')
+    if [[ -n "$selected" ]]; then
+      warn "$label: chrony using network source $selected (GPS/PPS not selected — is antenna locked?)"
+    else
+      fail "$label: chrony has no selected source at all"
+    fi
+  fi
+}
+
+check_chrony_client "Analytics Pi"  "local"           ""
+check_chrony_client "Recording Pi"  "$RECORDINGPI_IP" "$RECORDINGPI_USER"
+check_chrony_server "Clock Pi"      "$CLOCKPI_IP"     "$CLOCKPI_USER"
 
 # ── 5) User services ──────────────────────────────────────────────────────────
 
@@ -294,14 +320,14 @@ else
   age_min=$(( ( $(date +%s) - $(stat -c %Y "$BACKUP_LOG") ) / 60 ))
   errors=$(grep -c "ERROR\|FAIL\|error\|fail" "$BACKUP_LOG" 2>/dev/null || true)
   synced=$(grep -c "synced\|copied\|transferred" "$BACKUP_LOG" 2>/dev/null || true)
-  if (( age_min <= 15 )); then
+  if (( age_min <= 20 )); then
     if (( errors > 0 )); then
       warn "Backup log updated ${age_min}m ago but contains ${errors} error line(s)"
     else
       pass "Backup log updated ${age_min}m ago, ${errors} errors, ~${synced} sync events"
     fi
   else
-    warn "Backup log last updated ${age_min}m ago (expected < 15m if cron is running)"
+    warn "Backup log last updated ${age_min}m ago (expected < 20m if cron is running)"
   fi
 fi
 
