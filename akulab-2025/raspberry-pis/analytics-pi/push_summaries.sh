@@ -64,8 +64,8 @@ for year in $(echo "${!year_files[@]}" | tr ' ' '\n' | sort); do
   echo "  ✅ Generated: ${year}_summaries.html"
 done
 
-# Generate main index.html with year links
-INDEX_FILE="${DEST_DIR}/index.html"
+# Generate main index.html at repo root docs/ with year links
+INDEX_FILE="${REPO_DIR}/docs/index.html"
 {
   echo "<!DOCTYPE html>"
   echo "<html>"
@@ -82,22 +82,23 @@ INDEX_FILE="${DEST_DIR}/index.html"
   echo "</head>"
   echo "<body>"
   echo "  <h1>Auklab Daily Summaries</h1>"
+  echo "  <p>Welcome to the daily logs from the analytics Pi.</p>"
   echo "  <ul>"
   for year in $(echo "${!year_files[@]}" | tr ' ' '\n' | sort -r); do
-    echo "    <li class=\"year-item\"><a href=\"${year}_summaries.html\">📅 $year daily summaries</a></li>"
+    echo "    <li class=\"year-item\"><a href=\"daily_summaries/${year}_summaries.html\">📅 $year daily summaries</a></li>"
   done
   echo "  </ul>"
   echo "</body>"
   echo "</html>"
 } > "$INDEX_FILE"
-echo "  ✅ Generated: index.html"
+echo "  ✅ Generated: ${REPO_DIR}/docs/index.html"
 
 cd "$REPO_DIR"
 echo "📍 Changed to repository: $(pwd)"
 
-# Stage any changed or new HTML files
+# Stage any changed or new HTML files (including root and year index)
 echo "➕ Staging changes..."
-git add docs/daily_summaries/*.html
+git add docs/index.html docs/daily_summaries/*.html
 
 # Check if there is anything to commit
 if git diff --cached --quiet; then
