@@ -35,9 +35,9 @@ if $NO_COLOR; then GREEN=''; YELLOW=''; RED=''; BOLD=''; RESET=''; fi
 
 PASS=0; WARN=0; FAIL=0
 
-pass()  { echo -e "${GREEN}  ✅ PASS${RESET}  $*"; ((PASS++));  }
-warn()  { echo -e "${YELLOW}  ⚠️  WARN${RESET}  $*"; ((WARN++)); }
-fail()  { echo -e "${RED}  ❌ FAIL${RESET}  $*"; ((FAIL++));  }
+pass()  { echo -e "${GREEN}  ✅ PASS${RESET}  $*"; PASS=$((PASS+1));  }
+warn()  { echo -e "${YELLOW}  ⚠️  WARN${RESET}  $*"; WARN=$((WARN+1)); }
+fail()  { echo -e "${RED}  ❌ FAIL${RESET}  $*"; FAIL=$((FAIL+1));  }
 header(){ echo -e "\n${BOLD}══ $* ══${RESET}"; }
 
 # ── read config ───────────────────────────────────────────────────────────────
