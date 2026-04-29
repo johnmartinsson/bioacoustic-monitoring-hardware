@@ -21,29 +21,76 @@ cp "$SRC_DIR"/*.html "$DEST_DIR/" 2>/dev/null || {
   exit 0
 }
 
-echo "📝 Generating index.html in $DEST_DIR ..."
-INDEX_FILE="${DEST_DIR}/index.html"
+echo "📝 Generating year-grouped index pages in $DEST_DIR ..."
 
+# Collect all summary files and group by year
+declare -A year_files
+for file in $(ls "$DEST_DIR"/*_summary.html 2>/dev/null | sort); do
+  filename=$(basename "$file")
+  year=$(echo "$filename" | cut -d'-' -f1)
+  if [[ "$year" =~ ^[0-9]{4}$ ]]; then
+    year_files["$year"]+="$filename "
+  fi
+done
+
+# Generate per-year index pages
+for year in $(echo "${!year_files[@]}" | tr ' ' '\n' | sort); do
+  YEAR_INDEX="${DEST_DIR}/${year}_summaries.html"
+  {
+    echo "<!DOCTYPE html>"
+    echo "<html>"
+    echo "<head>"
+    echo "  <meta charset=\"utf-8\">"
+    echo "  <title>Auklab Daily Summaries - $year</title>"
+    echo "  <style>"
+    echo "    body { font-family: Arial, sans-serif; margin: 20px; }"
+    echo "    h1 { color: #333; }"
+    echo "    a { color: #0066cc; text-decoration: none; }"
+    echo "    a:hover { text-decoration: underline; }"
+    echo "    .back-link { margin-top: 20px; }"
+    echo "  </style>"
+    echo "</head>"
+    echo "<body>"
+    echo "  <h1>Auklab Daily Summaries - $year</h1>"
+    echo "  <ul>"
+    for filename in ${year_files["$year"]}; do
+      echo "    <li><a href=\"$filename\">$filename</a></li>"
+    done
+    echo "  </ul>"
+    echo "  <div class=\"back-link\"><a href=\"index.html\">← Back to all years</a></div>"
+    echo "</body>"
+    echo "</html>"
+  } > "$YEAR_INDEX"
+  echo "  ✅ Generated: ${year}_summaries.html"
+done
+
+# Generate main index.html with year links
+INDEX_FILE="${DEST_DIR}/index.html"
 {
   echo "<!DOCTYPE html>"
   echo "<html>"
   echo "<head>"
   echo "  <meta charset=\"utf-8\">"
-  echo "  <title>Daily Summaries</title>"
+  echo "  <title>Auklab Daily Summaries</title>"
+  echo "  <style>"
+  echo "    body { font-family: Arial, sans-serif; margin: 20px; }"
+  echo "    h1 { color: #333; }"
+  echo "    a { color: #0066cc; text-decoration: none; }"
+  echo "    a:hover { text-decoration: underline; }"
+  echo "    .year-item { margin: 10px 0; }"
+  echo "  </style>"
   echo "</head>"
   echo "<body>"
-  echo "  <h1>Daily Summaries</h1>"
+  echo "  <h1>Auklab Daily Summaries</h1>"
   echo "  <ul>"
-  # Sort them alphabetically or chronologically (depending on file naming).
-  for file in $(ls "$DEST_DIR"/*.html | sort); do
-    filename=$(basename "$file")
-    [[ "$filename" == "index.html" ]] && continue
-    echo "    <li><a href=\"$filename\">$filename</a></li>"
+  for year in $(echo "${!year_files[@]}" | tr ' ' '\n' | sort -r); do
+    echo "    <li class=\"year-item\"><a href=\"${year}_summaries.html\">📅 $year daily summaries</a></li>"
   done
   echo "  </ul>"
   echo "</body>"
   echo "</html>"
 } > "$INDEX_FILE"
+echo "  ✅ Generated: index.html"
 
 cd "$REPO_DIR"
 echo "📍 Changed to repository: $(pwd)"
