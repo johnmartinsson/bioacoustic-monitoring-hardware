@@ -307,22 +307,32 @@ def main():
     else:
         run_rsync_list(from_audio_dir, to_audio_dir, complete_unsynced_files, script_dir, synced_files_log)
 
-    # Sync manifest file (always re-synced; ffmpeg appends to it continuously)
-    manifest_src = Path(from_audio_dir) / "zoom_manifest.csv"
-    if manifest_src.exists():
-        rsync_manifest = [
-            "rsync", "-t", "--no-g", "--no-o",
-            str(manifest_src),
-            f"{to_audio_dir}/"
-        ]
-        logging.info(f"Syncing manifest: {' '.join(rsync_manifest)}")
-        result = subprocess.run(rsync_manifest, capture_output=True, text=True)
-        if result.returncode == 0:
-            logging.info("Manifest synced successfully.")
-        else:
-            logging.warning(f"Manifest rsync failed (code {result.returncode}): {result.stderr}")
+    # Sync session manifests (current one is re-synced while ffmpeg appends to it).
+    manifest_sources = sorted(Path(from_audio_dir).glob("zoom_manifest*.csv"))
+    if manifest_sources:
+        synced_manifest_count = 0
+        for manifest_src in manifest_sources:
+            rsync_manifest = [
+                "rsync", "-t", "--no-g", "--no-o",
+                str(manifest_src),
+                f"{to_audio_dir}/"
+            ]
+            logging.info(f"Syncing manifest: {' '.join(rsync_manifest)}")
+            result = subprocess.run(rsync_manifest, capture_output=True, text=True)
+            if result.returncode == 0:
+                synced_manifest_count += 1
+            else:
+                logging.warning(
+                    f"Manifest rsync failed for {manifest_src.name} "
+                    f"(code {result.returncode}): {result.stderr}"
+                )
+
+        logging.info(
+            f"Manifest sync complete: {synced_manifest_count}/"
+            f"{len(manifest_sources)} files synced."
+        )
     else:
-        logging.info("No zoom_manifest.csv found; skipping manifest sync.")
+        logging.info("No zoom_manifest*.csv found; skipping manifest sync.")
 
 #        # NEW: Attempt sha256 verification if rpi_mode == analyticspi and verify_sha256 = true
 #        if rpi_mode == "analyticspi" and config.getboolean("analyticspi", "verify_sha256", fallback=False):

@@ -51,7 +51,10 @@ echo "Sample rate         : ${SAMPLE_RATE} Hz"
 
 # ───────────────────────── 4.  Launch capture pipeline ──────────────────────────
 FILENAME_PATTERN="${LOCAL_RECORDING_DIR}/auklab_%Y%m%dT%H%M%S.wav"
-SEGMENT_LIST="${LOCAL_RECORDING_DIR}/zoom_manifest.csv"
+SESSION_TIMESTAMP="$(date -u +%Y%m%dT%H%M%SZ)"
+SEGMENT_LIST="${LOCAL_RECORDING_DIR}/zoom_manifest_${SESSION_TIMESTAMP}.csv"
+
+echo "Session manifest    : ${SEGMENT_LIST}"
 
 export ALSA_PCM_DEBUG=0          # set to 1 if you want kernel ring‑buffer stats
 
